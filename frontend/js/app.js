@@ -46,6 +46,8 @@ class App {
         this.connectionStatus = document.getElementById('connection-status');
         this.connectionText = document.getElementById('connection-text');
         
+        console.log('About button element:', this.aboutBtn); // DEBUG
+        
         // Welcome screen
         this.startChattingBtn = document.getElementById('start-chatting');
         
@@ -64,6 +66,8 @@ class App {
         this.aboutModal = document.getElementById('about-modal');
         this.closeAboutBtn = document.getElementById('close-about');
         
+        console.log('About modal element:', this.aboutModal); // DEBUG
+        
         // Confirmation modal
         this.confirmModal = document.getElementById('confirm-modal');
         this.confirmTitle = document.getElementById('confirm-title');
@@ -81,7 +85,16 @@ class App {
         this.searchInput.addEventListener('input', () => this.handleSearch());
         this.clearSearchBtn.addEventListener('click', () => this.clearSearch());
         this.settingsBtn.addEventListener('click', () => this.openSettings());
-        this.aboutBtn.addEventListener('click', () => this.openAbout());
+        
+        if (this.aboutBtn) {
+            this.aboutBtn.addEventListener('click', () => {
+                console.log('About button clicked!'); // DEBUG
+                this.openAbout();
+            });
+        } else {
+            console.warn('About button not found!'); // DEBUG
+        }
+        
         this.startChattingBtn.addEventListener('click', () => this.startNewChat());
         
         // Settings modal events
@@ -92,7 +105,9 @@ class App {
         this.saveSettingsBtn.addEventListener('click', () => this.saveSettings());
         
         // About modal events
-        this.closeAboutBtn.addEventListener('click', () => this.closeAbout());
+        if (this.closeAboutBtn) {
+            this.closeAboutBtn.addEventListener('click', () => this.closeAbout());
+        }
         
         // Confirmation modal events
         this.confirmCancelBtn.addEventListener('click', () => this.closeConfirmModal());
