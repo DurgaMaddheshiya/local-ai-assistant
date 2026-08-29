@@ -42,7 +42,6 @@ class App {
         this.searchInput = document.getElementById('search-conversations');
         this.clearSearchBtn = document.getElementById('clear-search');
         this.settingsBtn = document.getElementById('settings-btn');
-        this.aboutBtn = document.getElementById('about-btn');
         this.connectionStatus = document.getElementById('connection-status');
         this.connectionText = document.getElementById('connection-text');
         
@@ -77,7 +76,6 @@ class App {
         this.searchInput.addEventListener('input', () => this.handleSearch());
         this.clearSearchBtn.addEventListener('click', () => this.clearSearch());
         this.settingsBtn.addEventListener('click', () => this.openSettings());
-        this.aboutBtn.addEventListener('click', () => this.openAbout());
         this.startChattingBtn.addEventListener('click', () => this.startNewChat());
         
         // Settings modal events
@@ -425,15 +423,6 @@ class App {
         } catch (error) {
             console.warn('Failed to save theme to server:', error);
         }
-    }
-
-    // About modal
-    openAbout() {
-        alert('ℹ️ Educational Purpose\n\nThis project is for educational purposes only.\n\nPlease use responsibly:\n✓ Do not use for harmful content\n✓ Do not violate privacy\n✓ Do not spread misinformation\n✓ Use ethically and legally\n\nBuilt by @durga.kr2003\nGitHub: local-ai-assistant');
-    }
-
-    closeAbout() {
-        // Not needed for alert
     }
 
     // Confirmation dialog

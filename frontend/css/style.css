@@ -302,6 +302,28 @@ body {
     color: var(--text-muted);
 }
 
+.sidebar-disclaimer {
+    background-color: var(--background-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.sidebar-disclaimer small {
+    font-size: 0.7rem;
+    line-height: 1.4;
+    color: var(--text-secondary);
+}
+
+.sidebar-disclaimer small strong {
+    color: var(--warning-color);
+    font-weight: 600;
+}
+
 .status-dot {
     width: 8px;
     height: 8px;
