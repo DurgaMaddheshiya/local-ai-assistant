@@ -18,6 +18,10 @@ class App {
         this.bindEvents();
         this.loadTheme();
         
+        // Apply disclaimer opacity from localStorage
+        const disclaimerOpacity = localStorage.getItem('disclaimerOpacity') || '100';
+        this.updateDisclaimerOpacityDisplay(disclaimerOpacity);
+        
         // Initialize chat manager
         this.chatManager = new ChatManager();
         
@@ -52,12 +56,17 @@ class App {
         this.settingsModal = document.getElementById('settings-modal');
         this.closeSettingsBtn = document.getElementById('close-settings');
         this.themeSelect = document.getElementById('theme-select');
+        this.disclaimerOpacitySlider = document.getElementById('disclaimer-opacity-slider');
+        this.disclaimerOpacityValue = document.getElementById('disclaimer-opacity-value');
         this.temperatureSlider = document.getElementById('temperature-slider');
         this.temperatureValue = document.getElementById('temperature-value');
         this.maxTokensInput = document.getElementById('max-tokens-input');
         this.systemPromptTextarea = document.getElementById('system-prompt-textarea');
         this.clearAllDataBtn = document.getElementById('clear-all-data');
         this.saveSettingsBtn = document.getElementById('save-settings');
+        
+        // Sidebar disclaimer
+        this.sidebarDisclaimer = document.querySelector('.sidebar-disclaimer');
         
         // Confirmation modal
         this.confirmModal = document.getElementById('confirm-modal');
@@ -81,6 +90,7 @@ class App {
         // Settings modal events
         this.closeSettingsBtn.addEventListener('click', () => this.closeSettings());
         this.themeSelect.addEventListener('change', () => this.handleThemeChange());
+        this.disclaimerOpacitySlider.addEventListener('input', () => this.updateDisclaimerOpacity());
         this.temperatureSlider.addEventListener('input', () => this.updateTemperatureValue());
         this.clearAllDataBtn.addEventListener('click', () => this.confirmClearAllData());
         this.saveSettingsBtn.addEventListener('click', () => this.saveSettings());
@@ -318,6 +328,11 @@ class App {
             const settings = await window.api.getSettings();
             
             this.themeSelect.value = this.currentTheme;
+            const disclaimerOpacity = localStorage.getItem('disclaimerOpacity') || '100';
+            this.disclaimerOpacitySlider.value = disclaimerOpacity;
+            this.disclaimerOpacityValue.textContent = disclaimerOpacity + '%';
+            this.updateDisclaimerOpacityDisplay(disclaimerOpacity);
+            
             this.temperatureSlider.value = settings.temperature;
             this.temperatureValue.textContent = settings.temperature;
             this.maxTokensInput.value = settings.max_tokens;
@@ -353,6 +368,20 @@ class App {
 
     updateTemperatureValue() {
         this.temperatureValue.textContent = this.temperatureSlider.value;
+    }
+
+    updateDisclaimerOpacity() {
+        const opacity = this.disclaimerOpacitySlider.value;
+        this.disclaimerOpacityValue.textContent = opacity + '%';
+        this.updateDisclaimerOpacityDisplay(opacity);
+        localStorage.setItem('disclaimerOpacity', opacity);
+    }
+
+    updateDisclaimerOpacityDisplay(opacity) {
+        if (this.sidebarDisclaimer) {
+            const opacityValue = opacity / 100;
+            this.sidebarDisclaimer.style.opacity = opacityValue;
+        }
     }
 
     async updateSystemStatusInSettings() {
