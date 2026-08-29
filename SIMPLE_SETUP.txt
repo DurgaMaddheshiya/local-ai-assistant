@@ -1,0 +1,46 @@
+🎯 LOCAL AI ASSISTANT - SIMPLE SETUP (10 MINUTES)
+
+Built by @durga.kr2003 (Instagram)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 1: DOWNLOAD OLLAMA
+  → Go to: https://ollama.com/download
+  → Click "Download for Windows"
+  → Double-click OllamaSetup.exe
+  → Next → Next → Finish
+
+STEP 2: DOWNLOAD MODEL
+  → Open Command Prompt (Windows + R, type: cmd, Enter)
+  → Paste: ollama pull qwen2.5:3b
+  → Wait for 100% (5-15 minutes)
+
+STEP 3: START OLLAMA SERVICE
+  → Command Prompt mein: ollama serve
+  → Enter press karo
+  → Keep this window OPEN!
+
+STEP 4: EXTRACT APPLICATION
+  → Extract: LocalAIAssistant-Portable.zip
+  → New folder: LocalAIAssistant
+
+STEP 5: LAUNCH APP
+  → LocalAIAssistant folder mein jao
+  → Double-click: START.bat
+  → Browser opens automatically
+
+STEP 6: CHAT!
+  → Type message
+  → Press Enter
+  → AI responds! 🎉
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+EVERY TIME YOU USE:
+  1. ollama serve (Command Prompt)
+  2. Double-click START.bat
+  3. Chat!
+
+PROBLEM? Troubleshooting dekho FILE mein.
+
+Support: @durga.kr2003 (Instagram)

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local AI Assistant</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="light-theme">
+    <div id="app">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <div class="app-title">
+                    <i class="fas fa-robot"></i>
+                    <span>Local AI Assistant</span>
+                </div>
+                <button id="new-chat-btn" class="new-chat-btn">
+                    <i class="fas fa-plus"></i>
+                    <span>New Chat</span>
+                </button>
+            </div>
+
+            <div class="sidebar-content">
+                <!-- Search conversations -->
+                <div class="search-section">
+                    <div class="search-input-container">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="search-conversations" placeholder="Search conversations...">
+                        <button id="clear-search" class="clear-search" style="display: none;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Conversation list -->
+                <div id="conversation-list" class="conversation-list">
+                    <div class="loading-conversations">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Loading conversations...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <button id="settings-btn" class="settings-btn">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </button>
+                <div class="status-indicator">
+                    <div id="connection-status" class="status-dot offline"></div>
+                    <span id="connection-text">Connecting...</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <main id="main-content" class="main-content">
+            <!-- Welcome screen -->
+            <div id="welcome-screen" class="welcome-screen">
+                <div class="welcome-content">
+                    <div class="welcome-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h1>Local AI Assistant</h1>
+                    <p>Your privacy-focused AI assistant running locally on your computer.</p>
+                    <div class="features">
+                        <div class="feature">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>100% Private</span>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-wifi-slash"></i>
+                            <span>Offline Capable</span>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Fast & Local</span>
+                        </div>
+                    </div>
+                    <button id="start-chatting" class="start-chat-btn">
+                        <i class="fas fa-comments"></i>
+                        Start Chatting
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chat interface -->
+            <div id="chat-interface" class="chat-interface" style="display: none;">
+                <!-- Chat header -->
+                <div class="chat-header">
+                    <div class="chat-title">
+                        <h2 id="current-conversation-title">New Conversation</h2>
+                        <button id="edit-title-btn" class="edit-title-btn">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </div>
+                    <div class="chat-controls">
+                        <div class="model-selector">
+                            <select id="model-select">
+                                <option value="">Loading models...</option>
+                            </select>
+                        </div>
+                        <button id="clear-conversation" class="clear-btn">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chat messages -->
+                <div id="chat-messages" class="chat-messages">
+                    <!-- Messages will be inserted here -->
+                </div>
+
+                <!-- Chat input -->
+                <div class="chat-input-container">
+                    <div class="chat-input-wrapper">
+                        <textarea 
+                            id="message-input" 
+                            placeholder="Type your message... (Shift+Enter for new line)"
+                            rows="1"
+                        ></textarea>
+                        <button id="send-btn" class="send-btn" disabled>
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                        <button id="stop-btn" class="stop-btn" style="display: none;">
+                            <i class="fas fa-stop"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Settings modal -->
+    <div id="settings-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-cog"></i> Settings</h3>
+                <button id="close-settings" class="close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h4>Appearance</h4>
+                    <div class="setting-item">
+                        <label for="theme-select">Theme:</label>
+                        <select id="theme-select">
+                            <option value="light">Light</option>
+                            <option value="dark">Dark</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h4>AI Configuration</h4>
+                    <div class="setting-item">
+                        <label for="temperature-slider">Temperature:</label>
+                        <input type="range" id="temperature-slider" min="0" max="2" step="0.1" value="0.7">
+                        <span id="temperature-value">0.7</span>
+                    </div>
+                    <div class="setting-item">
+                        <label for="max-tokens-input">Max Tokens:</label>
+                        <input type="number" id="max-tokens-input" min="100" max="4000" value="2048">
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h4>System Prompt</h4>
+                    <div class="setting-item">
+                        <textarea 
+                            id="system-prompt-textarea" 
+                            rows="4" 
+                            placeholder="Enter system prompt..."
+                        ></textarea>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h4>Data Management</h4>
+                    <div class="setting-item">
+                        <button id="clear-all-data" class="danger-btn">
+                            <i class="fas fa-trash-alt"></i>
+                            Clear All Conversations
+                        </button>
+                        <p class="warning-text">This action cannot be undone.</p>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h4>System Status</h4>
+                    <div id="system-status" class="system-status">
+                        <div class="status-item">
+                            <span>Backend:</span>
+                            <span id="backend-status" class="status-unknown">Checking...</span>
+                        </div>
+                        <div class="status-item">
+                            <span>AI Engine:</span>
+                            <span id="ollama-status" class="status-unknown">Checking...</span>
+                        </div>
+                        <div class="status-item">
+                            <span>Model:</span>
+                            <span id="model-status" class="status-unknown">Checking...</span>
+                        </div>
+                        <div class="status-item">
+                            <span>Database:</span>
+                            <span id="database-status" class="status-unknown">Checking...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="save-settings" class="save-btn">
+                    <i class="fas fa-save"></i>
+                    Save Settings
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation modal -->
+    <div id="confirm-modal" class="modal" style="display: none;">
+        <div class="modal-content small">
+            <div class="modal-header">
+                <h3 id="confirm-title">Confirm Action</h3>
+            </div>
+            <div class="modal-body">
+                <p id="confirm-message">Are you sure?</p>
+            </div>
+            <div class="modal-footer">
+                <button id="confirm-cancel" class="cancel-btn">Cancel</button>
+                <button id="confirm-ok" class="danger-btn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Footer with credit -->
+    <footer id="app-footer" class="app-footer">
+        <div class="footer-content">
+            <span>Local AI Assistant</span>
+            <span class="footer-separator">•</span>
+            <span>Built by <a href="https://instagram.com/durga.kr2003" target="_blank">@durga.kr2003</a></span>
+            <span class="footer-separator">•</span>
+            <span><a href="https://github.com" target="_blank">Open Source</a></span>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/chat.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

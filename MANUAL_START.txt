@@ -1,0 +1,148 @@
+🎯 MANUALLY START KAISE KARO - STEP BY STEP
+
+Built by @durga.kr2003 (Instagram)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 1: OLLAMA SERVICE START KARO
+
+1. Windows key press karo (bottom left corner)
+2. Type karo: cmd
+3. Press Enter
+4. Black window khulti hai (Command Prompt)
+
+5. Ab type karo:
+   ollama serve
+
+6. Enter press karo
+
+7. Wait 2-3 seconds
+
+8. Ye message dikhna chahiye:
+   "Listening on 127.0.0.1:11434"
+
+✅ Ollama running!
+⚠️  THIS WINDOW KEEP OPEN!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 2: NEW COMMAND PROMPT WINDOW OPEN KARO
+
+(Pehla wala keep open rakhna!)
+
+1. Windows key press karo
+2. Type karo: cmd
+3. Enter press karo
+4. Naya Command Prompt khulta hai
+
+5. Navigate karo LocalAIAssistant folder tak:
+   cd LocalAIAssistant
+   (OR full path: cd C:\Users\YourName\LocalAIAssistant)
+
+6. Enter press karo
+
+7. Ab type karo:
+   python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
+
+8. Enter press karo
+
+9. Wait 5 seconds
+
+10. Ye message dikhna chahiye:
+    "Application startup complete"
+    "Uvicorn running on http://127.0.0.1:8000"
+
+✅ Application running!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 3: BROWSER OPEN KARO
+
+1. Chrome ya Firefox kholo
+2. Address bar mein likho: http://127.0.0.1:8000
+3. Enter press karo
+
+4. Welcome screen dikha?
+   ✅ SUCCESS!
+
+5. "Start Chatting" button click karo
+6. Message type karo
+7. AI respond karega!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SUMMARY - DUO WINDOW OPEN RAKHNE HAIN:
+
+Window 1: ollama serve
+  ├─ Type: ollama serve
+  ├─ Message: "Listening on 127.0.0.1:11434"
+  └─ KEEP OPEN!
+
+Window 2: Application server
+  ├─ cd LocalAIAssistant
+  ├─ python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
+  ├─ Message: "Application startup complete"
+  └─ KEEP OPEN!
+
+Browser: http://127.0.0.1:8000
+  └─ CHAT!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PROBLEM SOLVING:
+
+Q: Port 8000 already in use?
+A: Change karo:
+   python -m uvicorn backend.main:app --host 127.0.0.1 --port 8001
+
+Q: Ollama service unavailable?
+A: Check karo pehla window open hai?
+   Message dikhta hai "Listening on..."?
+
+Q: "Module not found"?
+A: Activate virtual environment:
+   .venv\Scripts\activate
+   (Then run uvicorn command)
+
+Q: Application won't start?
+A: Restart everything:
+   1. Dono Command Prompt close karo
+   2. 5 seconds wait karo
+   3. Fir se start karo
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+QUICK COMMANDS:
+
+Ollama service:
+  ollama serve
+
+Application:
+  cd LocalAIAssistant
+  python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
+
+Browser:
+  http://127.0.0.1:8000
+
+Stop:
+  Ctrl + C (in Command Prompt window)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ALTERNATIVE - EASIER WAY:
+
+Agar ye complicated lage to:
+
+1. LocalAIAssistant folder mein jao
+2. Double-click: START.bat
+3. Done! (Ye automatically sab start kar dega)
+
+START.bat file automatically:
+  ✅ Ollama serve start karti hai
+  ✅ Application launch karti hai
+  ✅ Browser kholt hai
+  ✅ Sab automatic!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Support: @durga.kr2003 (Instagram)
