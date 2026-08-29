@@ -18,6 +18,10 @@ class App {
         this.bindEvents();
         this.loadTheme();
         
+        // Apply app opacity from localStorage
+        const appOpacity = localStorage.getItem('appOpacity') || '100';
+        this.updateAppOpacityDisplay(appOpacity);
+        
         // Apply disclaimer opacity from localStorage
         const disclaimerOpacity = localStorage.getItem('disclaimerOpacity') || '100';
         this.updateDisclaimerOpacityDisplay(disclaimerOpacity);
@@ -49,6 +53,9 @@ class App {
         this.connectionStatus = document.getElementById('connection-status');
         this.connectionText = document.getElementById('connection-text');
         
+        // App container
+        this.app = document.getElementById('app');
+        
         // Welcome screen
         this.startChattingBtn = document.getElementById('start-chatting');
         
@@ -56,6 +63,8 @@ class App {
         this.settingsModal = document.getElementById('settings-modal');
         this.closeSettingsBtn = document.getElementById('close-settings');
         this.themeSelect = document.getElementById('theme-select');
+        this.appOpacitySlider = document.getElementById('app-opacity-slider');
+        this.appOpacityValue = document.getElementById('app-opacity-value');
         this.disclaimerOpacitySlider = document.getElementById('disclaimer-opacity-slider');
         this.disclaimerOpacityValue = document.getElementById('disclaimer-opacity-value');
         this.temperatureSlider = document.getElementById('temperature-slider');
@@ -90,6 +99,7 @@ class App {
         // Settings modal events
         this.closeSettingsBtn.addEventListener('click', () => this.closeSettings());
         this.themeSelect.addEventListener('change', () => this.handleThemeChange());
+        this.appOpacitySlider.addEventListener('input', () => this.updateAppOpacity());
         this.disclaimerOpacitySlider.addEventListener('input', () => this.updateDisclaimerOpacity());
         this.temperatureSlider.addEventListener('input', () => this.updateTemperatureValue());
         this.clearAllDataBtn.addEventListener('click', () => this.confirmClearAllData());
@@ -328,6 +338,12 @@ class App {
             const settings = await window.api.getSettings();
             
             this.themeSelect.value = this.currentTheme;
+            
+            const appOpacity = localStorage.getItem('appOpacity') || '100';
+            this.appOpacitySlider.value = appOpacity;
+            this.appOpacityValue.textContent = appOpacity + '%';
+            this.updateAppOpacityDisplay(appOpacity);
+            
             const disclaimerOpacity = localStorage.getItem('disclaimerOpacity') || '100';
             this.disclaimerOpacitySlider.value = disclaimerOpacity;
             this.disclaimerOpacityValue.textContent = disclaimerOpacity + '%';
@@ -368,6 +384,20 @@ class App {
 
     updateTemperatureValue() {
         this.temperatureValue.textContent = this.temperatureSlider.value;
+    }
+
+    updateAppOpacity() {
+        const opacity = this.appOpacitySlider.value;
+        this.appOpacityValue.textContent = opacity + '%';
+        this.updateAppOpacityDisplay(opacity);
+        localStorage.setItem('appOpacity', opacity);
+    }
+
+    updateAppOpacityDisplay(opacity) {
+        if (this.app) {
+            const opacityValue = opacity / 100;
+            this.app.style.opacity = opacityValue;
+        }
     }
 
     updateDisclaimerOpacity() {
