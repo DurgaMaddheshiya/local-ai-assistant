@@ -932,6 +932,74 @@ body {
     background-color: #b91c1c;
 }
 
+/* About Modal Styles */
+.about-section {
+    margin-bottom: 1.5rem;
+}
+
+.about-section h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.about-section p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 0.5rem;
+}
+
+.about-section p strong {
+    color: var(--warning-color);
+    font-weight: 600;
+}
+
+.about-list {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 0.5rem;
+}
+
+.about-list li {
+    padding-left: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    position: relative;
+    line-height: 1.5;
+}
+
+.about-list li:before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--success-color);
+    font-weight: bold;
+}
+
+.about-list li:has(+ li:nth-child(2)),
+.about-list li:has(+ li:nth-child(3)),
+.about-list li:has(+ li:nth-child(4)) {
+    margin-bottom: 0.5rem;
+}
+
+.about-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.about-link:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+}
+
 /* Toast Notifications */
 .toast-container {
     position: fixed;

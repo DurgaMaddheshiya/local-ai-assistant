@@ -42,6 +42,7 @@ class App {
         this.searchInput = document.getElementById('search-conversations');
         this.clearSearchBtn = document.getElementById('clear-search');
         this.settingsBtn = document.getElementById('settings-btn');
+        this.aboutBtn = document.getElementById('about-btn');
         this.connectionStatus = document.getElementById('connection-status');
         this.connectionText = document.getElementById('connection-text');
         
@@ -58,6 +59,10 @@ class App {
         this.systemPromptTextarea = document.getElementById('system-prompt-textarea');
         this.clearAllDataBtn = document.getElementById('clear-all-data');
         this.saveSettingsBtn = document.getElementById('save-settings');
+        
+        // About modal elements
+        this.aboutModal = document.getElementById('about-modal');
+        this.closeAboutBtn = document.getElementById('close-about');
         
         // Confirmation modal
         this.confirmModal = document.getElementById('confirm-modal');
@@ -76,6 +81,7 @@ class App {
         this.searchInput.addEventListener('input', () => this.handleSearch());
         this.clearSearchBtn.addEventListener('click', () => this.clearSearch());
         this.settingsBtn.addEventListener('click', () => this.openSettings());
+        this.aboutBtn.addEventListener('click', () => this.openAbout());
         this.startChattingBtn.addEventListener('click', () => this.startNewChat());
         
         // Settings modal events
@@ -85,6 +91,9 @@ class App {
         this.clearAllDataBtn.addEventListener('click', () => this.confirmClearAllData());
         this.saveSettingsBtn.addEventListener('click', () => this.saveSettings());
         
+        // About modal events
+        this.closeAboutBtn.addEventListener('click', () => this.closeAbout());
+        
         // Confirmation modal events
         this.confirmCancelBtn.addEventListener('click', () => this.closeConfirmModal());
         
@@ -92,6 +101,9 @@ class App {
         window.addEventListener('click', (event) => {
             if (event.target === this.settingsModal) {
                 this.closeSettings();
+            }
+            if (event.target === this.aboutModal) {
+                this.closeAbout();
             }
             if (event.target === this.confirmModal) {
                 this.closeConfirmModal();
@@ -108,6 +120,7 @@ class App {
             // Escape to close modals
             if (event.key === 'Escape') {
                 this.closeSettings();
+                this.closeAbout();
                 this.closeConfirmModal();
             }
         });
@@ -423,6 +436,15 @@ class App {
         } catch (error) {
             console.warn('Failed to save theme to server:', error);
         }
+    }
+
+    // About modal
+    openAbout() {
+        this.aboutModal.style.display = 'flex';
+    }
+
+    closeAbout() {
+        this.aboutModal.style.display = 'none';
     }
 
     // Confirmation dialog

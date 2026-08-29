@@ -49,6 +49,10 @@
                     <i class="fas fa-cog"></i>
                     <span>Settings</span>
                 </button>
+                <button id="about-btn" class="settings-btn">
+                    <i class="fas fa-info-circle"></i>
+                    <span>About</span>
+                </button>
                 <div class="status-indicator">
                     <div id="connection-status" class="status-dot offline"></div>
                     <span id="connection-text">Connecting...</span>
@@ -244,6 +248,68 @@
             <div class="modal-footer">
                 <button id="confirm-cancel" class="cancel-btn">Cancel</button>
                 <button id="confirm-ok" class="danger-btn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- About modal -->
+    <div id="about-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-info-circle"></i> About</h3>
+                <button id="close-about" class="close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="about-section">
+                    <h4>Local AI Assistant</h4>
+                    <p>A privacy-focused, offline-capable AI assistant running locally on your computer.</p>
+                </div>
+
+                <div class="about-section">
+                    <h4>⚠️ Important Notice</h4>
+                    <p><strong>This project is for educational purposes only.</strong></p>
+                    <p>Please use this application responsibly and ethically. Do not use it for:</p>
+                    <ul class="about-list">
+                        <li>Creating misleading or false information</li>
+                        <li>Generating harmful, abusive, or illegal content</li>
+                        <li>Violating privacy or intellectual property rights</li>
+                        <li>Automated harassment or spam</li>
+                        <li>Bypassing security systems or unauthorized access</li>
+                    </ul>
+                </div>
+
+                <div class="about-section">
+                    <h4>Features</h4>
+                    <ul class="about-list">
+                        <li>100% Private - All data stays on your computer</li>
+                        <li>Offline Capable - Works without internet connection</li>
+                        <li>Fast & Local - Powered by Ollama LLM</li>
+                        <li>Open Source - Fully transparent and customizable</li>
+                    </ul>
+                </div>
+
+                <div class="about-section">
+                    <h4>Technology Stack</h4>
+                    <ul class="about-list">
+                        <li>Backend: FastAPI (Python)</li>
+                        <li>Frontend: HTML, CSS, JavaScript</li>
+                        <li>Database: SQLite</li>
+                        <li>AI Engine: Ollama (Local LLM)</li>
+                    </ul>
+                </div>
+
+                <div class="about-section">
+                    <h4>Creator</h4>
+                    <p>Built by <a href="https://instagram.com/durga.kr2003" target="_blank" class="about-link">@durga.kr2003</a></p>
+                    <p>GitHub: <a href="https://github.com/DurgaMaddheshiya/local-ai-assistant" target="_blank" class="about-link">local-ai-assistant</a></p>
+                </div>
+
+                <div class="about-section">
+                    <h4>License</h4>
+                    <p>Open source project. Feel free to use, modify, and distribute.</p>
+                </div>
             </div>
         </div>
     </div>
