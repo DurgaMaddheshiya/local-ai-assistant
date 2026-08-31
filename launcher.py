@@ -1,5 +1,5 @@
-"""
-launcher.py - Desktop window launcher for Local AI Assistant
+﻿"""
+launcher.py - Desktop window launcher for Durgara
 Starts FastAPI backend then opens app in a dedicated PyWebView window (no browser needed)
 """
 
@@ -12,20 +12,20 @@ import logging
 import uvicorn
 import webview
 
-# ── logging ────────────────────────────────────────────────────────────────
+# â”€â”€ logging â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 log = logging.getLogger(__name__)
 
-# ── config ─────────────────────────────────────────────────────────────────
+# â”€â”€ config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 HOST = "127.0.0.1"
 PORT = 8000
 URL  = f"http://{HOST}:{PORT}"
 
 
-# ── port helper ────────────────────────────────────────────────────────────
+# â”€â”€ port helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def free_port(port: int):
     """Kill whatever process is using the given port (Windows)."""
     import subprocess
@@ -53,12 +53,12 @@ def is_port_in_use(port: int) -> bool:
         return s.connect_ex((HOST, port)) == 0
 
 
-# ── backend thread ─────────────────────────────────────────────────────────
+# â”€â”€ backend thread â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def start_backend():
     """Run FastAPI/uvicorn in a background daemon thread."""
     # Free port if already occupied
     if is_port_in_use(PORT):
-        log.info("Port %s in use — freeing it...", PORT)
+        log.info("Port %s in use â€” freeing it...", PORT)
         free_port(PORT)
         time.sleep(1)
 
@@ -85,7 +85,7 @@ def wait_for_backend(timeout: int = 30) -> bool:
     return False
 
 
-# ── main ───────────────────────────────────────────────────────────────────
+# â”€â”€ main â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def main():
     # 1. Start backend in background thread
     t = threading.Thread(target=start_backend, daemon=True)
@@ -100,7 +100,7 @@ def main():
 
     # 3. Open PyWebView desktop window
     window = webview.create_window(
-        title="Local AI Assistant",
+        title="Durgara",
         url=URL,
         width=1200,
         height=800,
@@ -120,3 +120,4 @@ if __name__ == "__main__":
     # Must run from project root so 'backend' package is importable
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     main()
+

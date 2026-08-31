@@ -1,11 +1,11 @@
-@echo off
+﻿@echo off
 setlocal EnableDelayedExpansion
 
-title Local AI Assistant
+title Durgara
 
 echo.
 echo ========================================================
-echo   Local AI Assistant
+echo   Durgara
 echo ========================================================
 echo.
 
@@ -55,7 +55,7 @@ if not exist "logs"  mkdir logs
 :: Launch desktop window (no browser needed)
 :: -------------------------------------------------------
 echo.
-echo   Opening Local AI Assistant desktop window...
+echo   Opening Durgara desktop window...
 echo.
 echo ========================================================
 echo.
@@ -67,3 +67,4 @@ echo   Application closed.
 echo.
 pause
 endlocal
+

@@ -1,5 +1,5 @@
-"""
-Main FastAPI application for Local AI Assistant
+﻿"""
+Main FastAPI application for Durgara
 """
 import logging
 from contextlib import asynccontextmanager
@@ -45,13 +45,13 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
-    description="Local AI Assistant — Privacy-focused offline AI chat",
+    description="Durgara â€” Privacy-focused offline AI chat",
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url=None
 )
 
-# CORS — localhost only
+# CORS â€” localhost only
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -190,3 +190,4 @@ if __name__ == "__main__":
         reload=False,
         log_level=settings.log_level.lower()
     )
+
