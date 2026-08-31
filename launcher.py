@@ -25,15 +25,49 @@ PORT = 8000
 URL  = f"http://{HOST}:{PORT}"
 
 
+# ── port helper ────────────────────────────────────────────────────────────
+def free_port(port: int):
+    """Kill whatever process is using the given port (Windows)."""
+    import subprocess
+    try:
+        result = subprocess.run(
+            f'netstat -ano | findstr :{port}',
+            shell=True, capture_output=True, text=True
+        )
+        for line in result.stdout.strip().splitlines():
+            parts = line.split()
+            if len(parts) >= 5 and f":{port}" in parts[1]:
+                pid = parts[-1]
+                subprocess.run(f"taskkill /PID {pid} /F", shell=True,
+                               capture_output=True)
+                log.info("Killed process %s using port %s", pid, port)
+                time.sleep(0.5)
+                break
+    except Exception as e:
+        log.warning("Could not free port %s: %s", port, e)
+
+
+def is_port_in_use(port: int) -> bool:
+    import socket
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex((HOST, port)) == 0
+
+
 # ── backend thread ─────────────────────────────────────────────────────────
 def start_backend():
     """Run FastAPI/uvicorn in a background daemon thread."""
+    # Free port if already occupied
+    if is_port_in_use(PORT):
+        log.info("Port %s in use — freeing it...", PORT)
+        free_port(PORT)
+        time.sleep(1)
+
     log.info("Starting backend on %s", URL)
     uvicorn.run(
         "backend.main:app",
         host=HOST,
         port=PORT,
-        log_level="warning",   # keep console clean
+        log_level="warning",
         reload=False,
     )
 
