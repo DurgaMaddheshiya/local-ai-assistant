@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Fira+Code:wght@300;400;500;600&display=swap');
+
 /* Local AI Assistant Styles */
 * {
     margin: 0;
@@ -57,8 +59,6 @@
 /* ═══════════════════════════════════════════════
    HACKER THEME  — Matrix / terminal vibes
    ═══════════════════════════════════════════════ */
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Fira+Code:wght@300;400;500;600&display=swap');
-
 .hacker-theme {
     --primary-color:      #00ff41;
     --primary-hover:      #00cc33;
