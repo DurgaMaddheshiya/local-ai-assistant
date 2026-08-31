@@ -6,52 +6,73 @@
 }
 
 :root {
-    /* Light theme colors */
-    --primary-color: #2563eb;
-    --primary-hover: #1d4ed8;
-    --secondary-color: #64748b;
-    --success-color: #059669;
-    --warning-color: #d97706;
-    --danger-color: #dc2626;
-    
-    --background-primary: #ffffff;
-    --background-secondary: #f8fafc;
-    --background-tertiary: #f1f5f9;
-    
-    --text-primary: #1e293b;
-    --text-secondary: #64748b;
-    --text-muted: #94a3b8;
-    
-    --border-color: #e2e8f0;
-    --border-hover: #cbd5e1;
-    
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    
-    --radius-sm: 0.375rem;
-    --radius-md: 0.5rem;
-    --radius-lg: 0.75rem;
-    
-    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    /* Netflix-inspired default theme */
+    --primary-color:   #e50914;
+    --primary-hover:   #b20710;
+    --secondary-color: #831010;
+    --success-color:   #46d369;
+    --warning-color:   #f5a623;
+    --danger-color:    #e50914;
+
+    --background-primary:   #141414;
+    --background-secondary: #1f1f1f;
+    --background-tertiary:  #2a2a2a;
+
+    --text-primary:   #ffffff;
+    --text-secondary: #b3b3b3;
+    --text-muted:     #6d6d6e;
+
+    --border-color: #2a2a2a;
+    --border-hover: #e50914;
+
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.6);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.6), 0 2px 4px -2px rgb(0 0 0 / 0.6);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.7), 0 4px 6px -4px rgb(0 0 0 / 0.7);
+
+    --radius-sm: 0.25rem;
+    --radius-md: 0.375rem;
+    --radius-lg: 0.5rem;
+
+    --font-family: 'Netflix Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
-/* Dark theme colors (ChatGPT-like) */
+/* Dark theme - same as default Netflix */
 .dark-theme {
-    --background-primary: #1a1a1a;
-    --background-secondary: #2a2a2a;
-    --background-tertiary: #3a3a3a;
-    
-    --text-primary: #ececec;
-    --text-secondary: #b4b4b4;
-    --text-muted: #8b8b8b;
-    
-    --border-color: #404040;
-    --border-hover: #525252;
-    
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.5);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.5);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
+    --primary-color:   #e50914;
+    --primary-hover:   #b20710;
+
+    --background-primary:   #141414;
+    --background-secondary: #1f1f1f;
+    --background-tertiary:  #2a2a2a;
+
+    --text-primary:   #ffffff;
+    --text-secondary: #b3b3b3;
+    --text-muted:     #6d6d6e;
+
+    --border-color: #2a2a2a;
+    --border-hover: #e50914;
+
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.6);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.6), 0 2px 4px -2px rgb(0 0 0 / 0.6);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.7), 0 4px 6px -4px rgb(0 0 0 / 0.7);
+}
+
+/* Light theme override */
+.light-theme {
+    --primary-color:   #e50914;
+    --primary-hover:   #b20710;
+    --secondary-color: #831010;
+
+    --background-primary:   #f3f3f3;
+    --background-secondary: #e8e8e8;
+    --background-tertiary:  #d9d9d9;
+
+    --text-primary:   #141414;
+    --text-secondary: #333333;
+    --text-muted:     #666666;
+
+    --border-color: #cccccc;
+    --border-hover: #e50914;
 }
 
 body {
