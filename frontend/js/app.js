@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Main application controller for Local AI Assistant
  */
 
@@ -209,7 +209,7 @@ class App {
         item.innerHTML = `
             <div class="conversation-info">
                 <div class="conversation-title">${this.escapeHtml(conversation.title)}</div>
-                <div class="conversation-meta">${this.formatDate(conversation.updated_at)} • ${conversation.message_count} messages</div>
+                <div class="conversation-meta">${this.formatDate(conversation.updated_at)} ΓÇó ${conversation.message_count} messages</div>
             </div>
             <div class="conversation-actions">
                 <button class="conversation-action delete-conversation" title="Delete conversation">
