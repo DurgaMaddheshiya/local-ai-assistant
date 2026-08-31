@@ -78,7 +78,7 @@ def wait_for_backend(timeout: int = 30) -> bool:
     deadline = time.time() + timeout
     while time.time() < deadline:
         try:
-            urllib.request.urlopen(f"{URL}/health", timeout=1)
+            urllib.request.urlopen(f"{URL}/api/health", timeout=1)
             return True
         except Exception:
             time.sleep(0.4)
