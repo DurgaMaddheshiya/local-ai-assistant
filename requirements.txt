@@ -4,6 +4,9 @@ uvicorn[standard]>=0.24.0
 pydantic>=2.5.0
 pydantic-settings>=2.1.0
 
+# Desktop window (no browser needed)
+pywebview>=4.0.0
+
 # Database
 sqlalchemy>=2.0.0
 alembic>=1.13.0
