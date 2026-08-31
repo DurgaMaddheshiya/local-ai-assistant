@@ -17,6 +17,7 @@ class App {
         this.initializeElements();
         this.bindEvents();
         this.loadTheme();
+        this.loadSidebarState();
         
         // Apply app opacity from localStorage
         const appOpacity = localStorage.getItem('appOpacity') || '100';
@@ -50,6 +51,7 @@ class App {
         this.searchInput = document.getElementById('search-conversations');
         this.clearSearchBtn = document.getElementById('clear-search');
         this.settingsBtn = document.getElementById('settings-btn');
+        this.sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
         this.connectionStatus = document.getElementById('connection-status');
         this.connectionText = document.getElementById('connection-text');
         
@@ -95,6 +97,9 @@ class App {
         this.clearSearchBtn.addEventListener('click', () => this.clearSearch());
         this.settingsBtn.addEventListener('click', () => this.openSettings());
         this.startChattingBtn.addEventListener('click', () => this.startNewChat());
+        if (this.sidebarToggleBtn) {
+            this.sidebarToggleBtn.addEventListener('click', () => this.toggleSidebar());
+        }
         
         // Settings modal events
         this.closeSettingsBtn.addEventListener('click', () => this.closeSettings());
@@ -267,6 +272,23 @@ class App {
         this.clearSearchBtn.style.display = 'none';
         this.filteredConversations = this.conversations;
         this.renderConversations();
+    }
+
+    // Sidebar toggle
+    toggleSidebar() {
+        const isCollapsed = this.sidebar.classList.toggle('collapsed');
+        const icon = this.sidebarToggleBtn.querySelector('i');
+        icon.className = isCollapsed ? 'fas fa-indent' : 'fas fa-bars';
+        localStorage.setItem('sidebarCollapsed', isCollapsed);
+    }
+
+    loadSidebarState() {
+        const collapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+        if (collapsed) {
+            this.sidebar.classList.add('collapsed');
+            const icon = this.sidebarToggleBtn.querySelector('i');
+            if (icon) icon.className = 'fas fa-indent';
+        }
     }
 
     async startNewChat() {
