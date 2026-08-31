@@ -1,5 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Fira+Code:wght@300;400;500;600&display=swap');
-
+﻿
 /* Local AI Assistant Styles */
 * {
     margin: 0;
@@ -56,9 +55,9 @@
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
 }
 
-/* ═══════════════════════════════════════════════
-   HACKER THEME  — Matrix / terminal vibes
-   ═══════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   HACKER THEME  â€” Matrix / terminal vibes
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .hacker-theme {
     --primary-color:      #00ff41;
     --primary-hover:      #00cc33;
@@ -86,7 +85,7 @@
     --radius-md: 0rem;
     --radius-lg: 0rem;
 
-    --font-family: 'Fira Code', 'Share Tech Mono', 'Courier New', monospace;
+    --font-family: 'Courier New', 'Lucida Console', monospace;
 }
 
 /* Scanline overlay on hacker theme */
@@ -1397,7 +1396,7 @@ body {
 }
 
 .about-list li:before {
-    content: "✓";
+    content: "âœ“";
     position: absolute;
     left: 0;
     color: var(--success-color);
