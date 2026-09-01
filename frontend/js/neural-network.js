@@ -36,9 +36,9 @@ class NeuralNetwork {
         const rgba = this.hexToRgba(primaryColor);
         
         this.colors = {
-            node: `rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, 0.6)`,
-            line: `rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, 0.1)`,
-            nodeGlow: `rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, 0.2)`
+            node: `rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, 0.25)`,
+            nodeGlow: `rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, 0.08)`,
+            lineBase: { r: rgba.r, g: rgba.g, b: rgba.b }
         };
     }
     
@@ -85,13 +85,13 @@ class NeuralNetwork {
     }
     
     drawNode(node) {
-        // Glow effect
+        // Glow effect - very faint
         this.ctx.beginPath();
-        this.ctx.arc(node.x, node.y, node.radius + 3, 0, Math.PI * 2);
+        this.ctx.arc(node.x, node.y, node.radius + 2, 0, Math.PI * 2);
         this.ctx.fillStyle = this.colors.nodeGlow;
         this.ctx.fill();
         
-        // Node
+        // Node - dark and subtle
         this.ctx.beginPath();
         this.ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
         this.ctx.fillStyle = this.colors.node;
@@ -99,15 +99,14 @@ class NeuralNetwork {
     }
     
     drawLine(node1, node2, distance) {
-        const opacity = (1 - (distance / this.maxDistance)) * 0.15;
-        const rgba = this.hexToRgba(getComputedStyle(document.documentElement)
-            .getPropertyValue('--primary-color').trim());
-        
+        const { r, g, b } = this.colors.lineBase;
+        // Max opacity 0.07 - very dark subtle lines
+        const opacity = (1 - (distance / this.maxDistance)) * 0.07;
         this.ctx.beginPath();
         this.ctx.moveTo(node1.x, node1.y);
         this.ctx.lineTo(node2.x, node2.y);
-        this.ctx.strokeStyle = `rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, ${opacity})`;
-        this.ctx.lineWidth = 0.5;
+        this.ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+        this.ctx.lineWidth = 0.4;
         this.ctx.stroke();
     }
     
