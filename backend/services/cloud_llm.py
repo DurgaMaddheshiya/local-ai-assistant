@@ -2,6 +2,7 @@
 Cloud LLM service - supports OpenAI, Google Gemini, Anthropic Claude
 Routes requests to appropriate provider based on model name prefix.
 """
+import asyncio
 import json
 import logging
 from typing import AsyncGenerator, Dict, List, Optional
@@ -11,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 # Model prefix mapping
 OPENAI_MODELS  = ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo"]
-GEMINI_MODELS  = ["gemini-1.5-flash-latest", "gemini-1.5-pro-latest", "gemini-1.5-flash-8b-latest"]
+GEMINI_MODELS  = ["gemini-1.5-flash", "gemini-1.5-pro"]
 CLAUDE_MODELS  = ["claude-3-5-sonnet", "claude-3-5-haiku", "claude-3-opus", "claude-3-sonnet", "claude-3-haiku"]
 
 
@@ -100,42 +101,52 @@ class CloudLLMService:
 
         payload = {
             "contents": contents,
-            "generationConfig": {"temperature": temperature, "maxOutputTokens": max_tokens},
+            "generationConfig": {
+                "temperature": temperature,
+                "maxOutputTokens": max_tokens,
+            }
         }
         if system_text:
             payload["systemInstruction"] = {"parts": [{"text": system_text}]}
 
-        # Use v1 API instead of v1beta
-        url = (f"https://generativelanguage.googleapis.com/v1/models/"
-               f"{model}:streamGenerateContent?alt=sse&key={self.gemini_key}")
+        # Use generateContent (non-streaming) and chunk manually for better compatibility
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={self.gemini_key}"
+        
         try:
             async with httpx.AsyncClient(timeout=120) as client:
-                async with client.stream("POST", url, json=payload) as resp:
-                    if resp.status_code != 200:
-                        body = await resp.aread()
-                        yield {"error": f"Gemini error {resp.status_code}: {body.decode()}", "done": True}
-                        return
-                    buffer = ""
-                    async for line in resp.aiter_lines():
-                        if line.startswith("data: "):
-                            try:
-                                chunk = json.loads(line[6:])
-                                candidates = chunk.get("candidates", [])
-                                if candidates:
-                                    content = candidates[0].get("content", {})
-                                    parts = content.get("parts", [])
-                                    if parts and "text" in parts[0]:
-                                        text = parts[0]["text"]
-                                        yield {"content": text, "done": False, "model": model}
-                                    finish_reason = candidates[0].get("finishReason")
-                                    if finish_reason and finish_reason != "STOP":
-                                        yield {"content": "", "done": True, "model": model}
-                                        return
-                            except Exception as e:
-                                logger.error(f"Gemini chunk parse error: {e}")
-                                continue
-            yield {"content": "", "done": True, "model": model}
+                resp = await client.post(url, json=payload)
+                
+                if resp.status_code != 200:
+                    error_body = resp.text
+                    yield {"error": f"Gemini error {resp.status_code}: {error_body}", "done": True}
+                    return
+                
+                result = resp.json()
+                candidates = result.get("candidates", [])
+                if not candidates:
+                    yield {"error": "No response from Gemini", "done": True}
+                    return
+                
+                content = candidates[0].get("content", {})
+                parts = content.get("parts", [])
+                if not parts or "text" not in parts[0]:
+                    yield {"error": "Invalid response format from Gemini", "done": True}
+                    return
+                
+                full_text = parts[0]["text"]
+                
+                # Chunk the response for streaming effect (send 10 chars at a time)
+                chunk_size = 10
+                for i in range(0, len(full_text), chunk_size):
+                    chunk = full_text[i:i + chunk_size]
+                    is_done = (i + chunk_size >= len(full_text))
+                    yield {"content": chunk, "done": is_done, "model": model}
+                    if not is_done:
+                        # Small delay for streaming effect
+                        await asyncio.sleep(0.01)
+                
         except Exception as e:
+            logger.error(f"Gemini error: {e}")
             yield {"error": str(e), "done": True}
 
     # ── Claude ────────────────────────────────────────────────────────────
