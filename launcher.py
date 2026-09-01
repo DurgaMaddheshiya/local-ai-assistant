@@ -13,6 +13,19 @@ import uvicorn
 import webview
 import keyboard  # global hotkey support
 
+# -- Hide console window on Windows ------------------------------------------
+def hide_console():
+    """Hide the CMD/console window if running on Windows."""
+    try:
+        import ctypes
+        hwnd = ctypes.windll.kernel32.GetConsoleWindow()
+        if hwnd:
+            ctypes.windll.user32.ShowWindow(hwnd, 0)  # SW_HIDE = 0
+    except Exception:
+        pass
+
+hide_console()
+
 # -- logging ------------------------------------------------------------------
 logging.basicConfig(
     level=logging.INFO,
