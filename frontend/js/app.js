@@ -318,12 +318,22 @@ class App {
     // ── Accent Color ──────────────────────────────────────────────────────
 
     applyAccentColor(hex) {
-        // Derive hover color (darken by ~20%)
-        const hover = this.darkenColor(hex, 0.2);
-        document.documentElement.style.setProperty('--primary-color', hex);
-        document.documentElement.style.setProperty('--primary-hover', hover);
-        document.documentElement.style.setProperty('--danger-color', hex);
+        // Derive hover (darken ~20%) and secondary (darken ~40%)
+        const hover     = this.darkenColor(hex, 0.2);
+        const secondary = this.darkenColor(hex, 0.4);
+
+        const root = document.documentElement;
+        root.style.setProperty('--primary-color',   hex);
+        root.style.setProperty('--primary-hover',   hover);
+        root.style.setProperty('--secondary-color', secondary);
+        root.style.setProperty('--danger-color',    hex);
+        root.style.setProperty('--border-hover',    hex);
+
+        // Fix rgba hardcoded shadow (shortcut recorder blink)
+        root.style.setProperty('--primary-color-alpha', this.hexToRgba(hex, 0.2));
+
         localStorage.setItem('accentColor', hex);
+
         // Update active state on presets
         this.accentPresets.forEach(btn => {
             btn.classList.toggle('active', btn.dataset.color === hex);
@@ -337,6 +347,14 @@ class App {
         const g = Math.max(0, ((num >> 8) & 0xff) - Math.round(255 * amount));
         const b = Math.max(0, (num & 0xff) - Math.round(255 * amount));
         return '#' + [r, g, b].map(v => v.toString(16).padStart(2,'0')).join('');
+    }
+
+    hexToRgba(hex, alpha) {
+        const num = parseInt(hex.replace('#',''), 16);
+        const r = (num >> 16) & 0xff;
+        const g = (num >> 8)  & 0xff;
+        const b =  num        & 0xff;
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 
     loadAccentColor() {
