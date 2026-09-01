@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 # Model prefix mapping
 OPENAI_MODELS  = ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo"]
-GEMINI_MODELS  = ["gemini-2.0-flash", "gemini-1.5-pro", "gemini-1.5-flash", "gemini-1.0-pro"]
+GEMINI_MODELS  = ["gemini-2.0-flash-exp", "gemini-1.5-pro", "gemini-1.5-flash", "gemini-1.5-flash-8b"]
 CLAUDE_MODELS  = ["claude-3-5-sonnet", "claude-3-5-haiku", "claude-3-opus", "claude-3-sonnet", "claude-3-haiku"]
 
 

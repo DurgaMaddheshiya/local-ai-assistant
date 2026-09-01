@@ -255,7 +255,6 @@ async def _stream_chat_response(
             model=model,
             temperature=temperature,
             max_tokens=max_tokens,
-            stream=True,
             images=images
         ):
             if "error" in chunk:
