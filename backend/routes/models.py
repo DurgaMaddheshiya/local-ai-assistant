@@ -18,9 +18,9 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 CLOUD_MODELS = (
-    [{"name": m, "provider": "openai", "size": "Cloud ☁ · 🌐 Internet Required"} for m in OPENAI_MODELS] +
-    [{"name": m, "provider": "gemini", "size": "Cloud ☁ · 🌐 Internet Required"} for m in GEMINI_MODELS] +
-    [{"name": m, "provider": "claude", "size": "Cloud ☁ · 🌐 Internet Required"} for m in CLAUDE_MODELS]
+    [{"name": m, "provider": "openai", "size": "☁️ 🌐"} for m in OPENAI_MODELS] +
+    [{"name": m, "provider": "gemini", "size": "☁️ 🌐"} for m in GEMINI_MODELS] +
+    [{"name": m, "provider": "claude", "size": "☁️ 🌐"} for m in CLAUDE_MODELS]
 )
 
 

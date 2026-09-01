@@ -74,6 +74,8 @@ body {
     line-height: 1.6;
     overflow: hidden;
     letter-spacing: 0.03em;
+    font-size: 14px; /* Fixed base font size for proper zoom */
+    zoom: 0.9; /* Reduce overall zoom by 10% */
 }
 
 #app {
