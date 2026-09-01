@@ -91,6 +91,11 @@ class App {
         this.accentColorPicker = document.getElementById('accent-color-picker');
         this.accentPresets = document.querySelectorAll('.accent-preset');
 
+        // API Key inputs
+        this.openaiKeyInput = document.getElementById('openai-key-input');
+        this.geminiKeyInput = document.getElementById('gemini-key-input');
+        this.claudeKeyInput = document.getElementById('claude-key-input');
+
         // Shortcut recorder elements
         this.shortcutDisplay = document.getElementById('shortcut-display');
         this.shortcutKeysLabel = document.getElementById('shortcut-keys-label');
@@ -630,6 +635,11 @@ class App {
             this.temperatureValue.textContent = settings.temperature;
             this.maxTokensInput.value = settings.max_tokens;
             this.systemPromptTextarea.value = settings.system_prompt;
+
+            // API Keys (masked)
+            if (this.openaiKeyInput) this.openaiKeyInput.value = settings.openai_api_key || '';
+            if (this.geminiKeyInput) this.geminiKeyInput.value = settings.gemini_api_key || '';
+            if (this.claudeKeyInput) this.claudeKeyInput.value = settings.claude_api_key || '';
             
         } catch (error) {
             console.error('Error loading settings:', error);
@@ -644,6 +654,17 @@ class App {
                 max_tokens: parseInt(this.maxTokensInput.value),
                 system_prompt: this.systemPromptTextarea.value
             };
+
+            // Add API keys if they exist and aren't masked
+            if (this.openaiKeyInput?.value && !this.openaiKeyInput.value.includes('••')) {
+                settings.openai_api_key = this.openaiKeyInput.value;
+            }
+            if (this.geminiKeyInput?.value && !this.geminiKeyInput.value.includes('••')) {
+                settings.gemini_api_key = this.geminiKeyInput.value;
+            }
+            if (this.claudeKeyInput?.value && !this.claudeKeyInput.value.includes('••')) {
+                settings.claude_api_key = this.claudeKeyInput.value;
+            }
             
             await window.api.updateSettings(settings);
             

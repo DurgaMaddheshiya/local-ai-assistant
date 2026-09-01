@@ -1331,6 +1331,69 @@ body {
     cursor: zoom-in;
 }
 
+/* API Keys Section */
+.cloud-badge {
+    font-size: 0.65rem;
+    font-weight: 500;
+    background: rgba(59,130,246,0.15);
+    color: #60a5fa;
+    border: 1px solid #3b82f6;
+    border-radius: 4px;
+    padding: 0.1rem 0.4rem;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+}
+
+.settings-section-hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+    line-height: 1.4;
+}
+
+.api-key-row {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+}
+
+.api-key-row input {
+    flex: 1;
+}
+
+.toggle-key-btn {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.toggle-key-btn:hover {
+    color: var(--text-primary);
+    background: var(--background-tertiary);
+}
+
+.key-hint {
+    display: block;
+    margin-top: 0.3rem;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+/* Cloud model badge in selector */
+.model-option-cloud {
+    color: #60a5fa;
+    font-size: 0.7rem;
+}
+
 /* Incognito Mode */
 .incognito-btn {
     display: flex;

@@ -10,11 +10,18 @@ from ..config import settings
 from ..database import get_db
 from ..schemas import ModelResponse, ModelInfo, ModelSelectionRequest
 from ..services.llm import OllamaService
+from ..services.cloud_llm import OPENAI_MODELS, GEMINI_MODELS, CLAUDE_MODELS, get_provider
 from ..models.database_models import get_setting, set_setting
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+CLOUD_MODELS = (
+    [{"name": m, "provider": "openai", "size": "Cloud ☁ · 🌐 Internet Required"} for m in OPENAI_MODELS] +
+    [{"name": m, "provider": "gemini", "size": "Cloud ☁ · 🌐 Internet Required"} for m in GEMINI_MODELS] +
+    [{"name": m, "provider": "claude", "size": "Cloud ☁ · 🌐 Internet Required"} for m in CLAUDE_MODELS]
+)
 
 
 @router.get("/models", response_model=ModelResponse)
@@ -49,7 +56,15 @@ async def get_available_models():
                 digest=model_data.get("digest"),
                 details=model_data.get("details")
             ))
-        
+
+        # Append cloud models
+        for cm in CLOUD_MODELS:
+            models.append(ModelInfo(
+                name=cm["name"],
+                size=cm["size"],
+                details={"provider": cm["provider"], "cloud": True}
+            ))
+
         return ModelResponse(models=models)
         
     except HTTPException:
@@ -106,9 +121,17 @@ async def select_model(
     Select a model to use for chat
     """
     try:
+        # Check if cloud model - no Ollama validation needed
+        provider = get_provider(request.model)
+        if provider != "ollama":
+            set_setting(db, "current_model", request.model)
+            return {
+                "message": f"Model changed to {request.model}",
+                "model": request.model,
+                "provider": provider
+            }
+
         ollama_service = OllamaService()
-        
-        # Check if model exists
         success = await ollama_service.set_model(request.model)
         
         if not success:

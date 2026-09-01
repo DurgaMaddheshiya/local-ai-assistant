@@ -329,6 +329,47 @@
                 </div>
 
                 <div class="settings-section">
+                    <h4><i class="fas fa-cloud"></i> API Keys <span class="cloud-badge">☁ Internet Required</span></h4>
+                    <p class="settings-section-hint">Add API keys to use ChatGPT, Gemini, or Claude models. Keys are stored locally and never shared.</p>
+                    <div class="setting-item">
+                        <label for="openai-key-input">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg" width="14" style="vertical-align:middle;margin-right:4px"> OpenAI (ChatGPT)
+                        </label>
+                        <div class="api-key-row">
+                            <input type="password" id="openai-key-input" placeholder="sk-..." autocomplete="off">
+                            <button class="toggle-key-btn" onclick="this.previousElementSibling.type=this.previousElementSibling.type==='password'?'text':'password'">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <small class="key-hint">Models: GPT-4o, GPT-4o-mini, GPT-3.5-turbo</small>
+                    </div>
+                    <div class="setting-item">
+                        <label for="gemini-key-input">
+                            <i class="fas fa-gem" style="color:#4285f4;margin-right:4px"></i> Google Gemini
+                        </label>
+                        <div class="api-key-row">
+                            <input type="password" id="gemini-key-input" placeholder="AIza..." autocomplete="off">
+                            <button class="toggle-key-btn" onclick="this.previousElementSibling.type=this.previousElementSibling.type==='password'?'text':'password'">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <small class="key-hint">Models: Gemini 2.0 Flash, Gemini 1.5 Pro</small>
+                    </div>
+                    <div class="setting-item">
+                        <label for="claude-key-input">
+                            <i class="fas fa-brain" style="color:#d97706;margin-right:4px"></i> Anthropic Claude
+                        </label>
+                        <div class="api-key-row">
+                            <input type="password" id="claude-key-input" placeholder="sk-ant-..." autocomplete="off">
+                            <button class="toggle-key-btn" onclick="this.previousElementSibling.type=this.previousElementSibling.type==='password'?'text':'password'">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <small class="key-hint">Models: Claude 3.5 Sonnet, Claude 3 Opus</small>
+                    </div>
+                </div>
+
+                <div class="settings-section">
                     <h4>Data Management</h4>
                     <div class="setting-item">
                         <button id="clear-all-data" class="danger-btn">

@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from ..schemas import ChatRequest, ChatResponse, StreamChunk
 from ..services.llm import OllamaService
+from ..services.cloud_llm import CloudLLMService, get_provider
 from ..services.conversation import ConversationService
 from ..models.database_models import (
     get_conversation_with_messages, create_conversation, create_message,
@@ -158,10 +159,20 @@ async def chat_endpoint(
         # Set the model in Ollama service
         await ollama_service.set_model(model)
 
+        # Determine provider and pick service
+        provider = get_provider(model)
+        if provider != "ollama":
+            openai_key = get_setting(db, "openai_api_key", "")
+            gemini_key = get_setting(db, "gemini_api_key", "")
+            claude_key = get_setting(db, "claude_api_key", "")
+            llm_service = CloudLLMService(openai_key, gemini_key, claude_key)
+        else:
+            llm_service = ollama_service
+
         if request.stream:
             return StreamingResponse(
                 _stream_chat_response(
-                    ollama_service, messages, conversation_id, db,
+                    llm_service, messages, conversation_id, db,
                     temperature, max_tokens, model,
                     incognito=request.incognito,
                     images=request.images
@@ -169,13 +180,25 @@ async def chat_endpoint(
                 media_type="text/plain"
             )
         else:
-            response = await ollama_service.generate_single_response(
-                messages=messages,
-                model=model,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                images=request.images
-            )
+            if provider != "ollama":
+                full = ""
+                async for chunk in llm_service.generate_response(
+                    messages=messages, model=model,
+                    temperature=temperature, max_tokens=max_tokens,
+                    images=request.images
+                ):
+                    if "error" in chunk:
+                        raise HTTPException(status_code=500, detail={"error": chunk["error"]})
+                    full += chunk.get("content", "")
+                    if chunk.get("done"):
+                        break
+                response = {"content": full, "model": model}
+            else:
+                response = await ollama_service.generate_single_response(
+                    messages=messages, model=model,
+                    temperature=temperature, max_tokens=max_tokens,
+                    images=request.images
+                )
 
             if "error" in response:
                 raise HTTPException(
@@ -212,7 +235,7 @@ async def chat_endpoint(
 
 
 async def _stream_chat_response(
-    ollama_service: OllamaService,
+    llm_service,
     messages: List[Dict],
     conversation_id: str,
     db: Session,
@@ -222,14 +245,12 @@ async def _stream_chat_response(
     incognito: bool = False,
     images: Optional[List[str]] = None
 ):
-    """
-    Stream chat response chunks
-    """
+    """Stream chat response chunks"""
     try:
         full_response = ""
         message_id = str(uuid.uuid4())
-        
-        async for chunk in ollama_service.generate_response(
+
+        async for chunk in llm_service.generate_response(
             messages=messages,
             model=model,
             temperature=temperature,

@@ -121,6 +121,9 @@ class SettingsResponse(BaseSchema):
     max_tokens: int
     context_length: int
     system_prompt: str
+    openai_api_key: Optional[str] = None
+    gemini_api_key: Optional[str] = None
+    claude_api_key: Optional[str] = None
 
 
 class SettingsUpdate(BaseSchema):
@@ -129,6 +132,9 @@ class SettingsUpdate(BaseSchema):
     temperature: Optional[float] = Field(None, ge=0.0, le=2.0)
     max_tokens: Optional[int] = Field(None, gt=0)
     system_prompt: Optional[str] = None
+    openai_api_key: Optional[str] = None
+    gemini_api_key: Optional[str] = None
+    claude_api_key: Optional[str] = None
 
 
 # System schemas

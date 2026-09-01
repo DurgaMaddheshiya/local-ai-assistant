@@ -15,6 +15,13 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+def _mask_key(key: str) -> str:
+    """Return masked version for display, empty string if not set."""
+    if not key:
+        return ""
+    return key[:4] + "••••••••" + key[-4:] if len(key) > 8 else "••••••••"
+
+
 @router.get("/settings", response_model=SettingsResponse)
 async def get_settings(db: Session = Depends(get_db)):
     """
@@ -27,7 +34,10 @@ async def get_settings(db: Session = Depends(get_db)):
             temperature=float(get_setting(db, "temperature", str(settings.default_temperature))),
             max_tokens=int(get_setting(db, "max_tokens", str(settings.default_max_tokens))),
             context_length=int(get_setting(db, "context_length", str(settings.default_context_length))),
-            system_prompt=get_setting(db, "system_prompt", settings.default_system_prompt)
+            system_prompt=get_setting(db, "system_prompt", settings.default_system_prompt),
+            openai_api_key=_mask_key(get_setting(db, "openai_api_key", "")),
+            gemini_api_key=_mask_key(get_setting(db, "gemini_api_key", "")),
+            claude_api_key=_mask_key(get_setting(db, "claude_api_key", "")),
         )
         
         return current_settings
@@ -73,6 +83,19 @@ async def update_settings(
         if updates.system_prompt is not None:
             set_setting(db, "system_prompt", updates.system_prompt)
             updated_fields.append("system_prompt")
+
+        # Update API keys if provided (only save if non-empty and not masked)
+        if updates.openai_api_key is not None and "••" not in updates.openai_api_key:
+            set_setting(db, "openai_api_key", updates.openai_api_key)
+            updated_fields.append("openai_api_key")
+
+        if updates.gemini_api_key is not None and "••" not in updates.gemini_api_key:
+            set_setting(db, "gemini_api_key", updates.gemini_api_key)
+            updated_fields.append("gemini_api_key")
+
+        if updates.claude_api_key is not None and "••" not in updates.claude_api_key:
+            set_setting(db, "claude_api_key", updates.claude_api_key)
+            updated_fields.append("claude_api_key")
         
         # Get updated settings
         updated_settings = SettingsResponse(
@@ -81,7 +104,10 @@ async def update_settings(
             temperature=float(get_setting(db, "temperature", str(settings.default_temperature))),
             max_tokens=int(get_setting(db, "max_tokens", str(settings.default_max_tokens))),
             context_length=int(get_setting(db, "context_length", str(settings.default_context_length))),
-            system_prompt=get_setting(db, "system_prompt", settings.default_system_prompt)
+            system_prompt=get_setting(db, "system_prompt", settings.default_system_prompt),
+            openai_api_key=_mask_key(get_setting(db, "openai_api_key", "")),
+            gemini_api_key=_mask_key(get_setting(db, "gemini_api_key", "")),
+            claude_api_key=_mask_key(get_setting(db, "claude_api_key", "")),
         )
         
         return {
