@@ -7,6 +7,7 @@ class ChatManager {
         this.currentConversationId = null;
         this.isGenerating = false;
         this.currentStreamReader = null;
+        this.templateSystemPrompt = null;
         
         this.initializeElements();
         this.bindEvents();
@@ -72,22 +73,30 @@ class ChatManager {
         try {
             this.setGenerating(true);
             this.clearInput();
-            
+
             // Show user message
             this.addMessage('user', message);
-            
+
             // Show typing indicator
             const typingId = this.addTypingIndicator();
-            
+
+            // Build options - include incognito flag and template system prompt
+            const isIncognito = window.app && window.app.incognitoMode;
+            const opts = {
+                model: this.modelSelect.value || null,
+                temperature: parseFloat(localStorage.getItem('temperature') || '0.7'),
+                max_tokens: parseInt(localStorage.getItem('max_tokens') || '2048'),
+                incognito: isIncognito || false,
+            };
+            if (this.templateSystemPrompt) {
+                opts.system_prompt = this.templateSystemPrompt;
+            }
+
             // Send streaming request
             const response = await window.api.sendStreamingMessage(
-                message, 
-                this.currentConversationId,
-                {
-                    model: this.modelSelect.value || null,
-                    temperature: parseFloat(localStorage.getItem('temperature') || '0.7'),
-                    max_tokens: parseInt(localStorage.getItem('max_tokens') || '2048')
-                }
+                message,
+                isIncognito ? null : this.currentConversationId,
+                opts
             );
 
             // Handle streaming response
@@ -387,6 +396,7 @@ class ChatManager {
 
     async startNewChat() {
         this.currentConversationId = null;
+        this.templateSystemPrompt = null;
         this.clearMessages();
         this.showChatInterface();
         this.updateConversationTitle('New Conversation');

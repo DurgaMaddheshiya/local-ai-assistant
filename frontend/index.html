@@ -46,6 +46,10 @@
 
             <div class="sidebar-footer">
                 <div class="sidebar-buttons">
+                    <button id="incognito-btn" class="incognito-btn" title="Incognito Mode - chats won't be saved">
+                        <i class="fas fa-user-secret"></i>
+                        <span>Incognito</span>
+                    </button>
                     <button id="settings-btn" class="settings-btn">
                         <i class="fas fa-cog"></i>
                         <span>Settings</span>
@@ -110,6 +114,9 @@
                         </button>
                     </div>
                     <div class="chat-controls">
+                        <button id="templates-btn" class="templates-btn" title="Conversation Templates">
+                            <i class="fas fa-layer-group"></i>
+                        </button>
                         <div class="model-selector">
                             <select id="model-select">
                                 <option value="">Loading models...</option>
@@ -119,6 +126,13 @@
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
+                </div>
+
+                <!-- Incognito banner -->
+                <div id="incognito-banner" class="incognito-banner" style="display:none;">
+                    <i class="fas fa-user-secret"></i>
+                    <span>Incognito Mode — This conversation will not be saved</span>
+                    <button id="exit-incognito-btn" class="exit-incognito-btn">Exit</button>
                 </div>
 
                 <!-- Chat messages -->
@@ -158,7 +172,62 @@
     </div>
 
     <!-- Settings modal -->
-    <div id="settings-modal" class="modal" style="display: none;">
+    <!-- Templates Modal -->
+    <div id="templates-modal" class="modal" style="display: none;">
+        <div class="modal-content templates-modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-layer-group"></i> Conversation Templates</h3>
+                <button id="close-templates" class="close-btn"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p class="templates-hint">Select a template to start a focused conversation.</p>
+                <div class="templates-grid">
+                    <div class="template-card" data-prompt="You are an expert software engineer. Help me write clean, efficient, and well-documented code. When I share code, review it for bugs, performance issues, and best practices.">
+                        <div class="template-icon"><i class="fas fa-code"></i></div>
+                        <h4>Code Helper</h4>
+                        <p>Write, review & debug code</p>
+                    </div>
+                    <div class="template-card" data-prompt="You are a professional translator. Translate any text I provide accurately while preserving tone, context and meaning. Ask me which language to translate to if not specified.">
+                        <div class="template-icon"><i class="fas fa-language"></i></div>
+                        <h4>Translator</h4>
+                        <p>Translate text between languages</p>
+                    </div>
+                    <div class="template-card" data-prompt="You are an expert at summarizing content. When I provide text, articles, or documents, give me a concise summary with key points in bullet form.">
+                        <div class="template-icon"><i class="fas fa-compress-alt"></i></div>
+                        <h4>Summarizer</h4>
+                        <p>Summarize long text quickly</p>
+                    </div>
+                    <div class="template-card" data-prompt="You are a professional writing coach. Help me improve my writing — fix grammar, improve clarity, enhance style, and suggest better word choices. Explain your changes.">
+                        <div class="template-icon"><i class="fas fa-pen-fancy"></i></div>
+                        <h4>Writing Coach</h4>
+                        <p>Improve grammar & writing style</p>
+                    </div>
+                    <div class="template-card" data-prompt="You are a patient and knowledgeable teacher. Explain any concept I ask about in simple terms with examples. Adjust your explanation based on my level of understanding.">
+                        <div class="template-icon"><i class="fas fa-graduation-cap"></i></div>
+                        <h4>Teacher</h4>
+                        <p>Explain any concept clearly</p>
+                    </div>
+                    <div class="template-card" data-prompt="You are a creative brainstorming partner. Help me generate ideas, think outside the box, and explore different perspectives on any topic I bring up.">
+                        <div class="template-icon"><i class="fas fa-lightbulb"></i></div>
+                        <h4>Brainstorm</h4>
+                        <p>Generate ideas & explore topics</p>
+                    </div>
+                    <div class="template-card" data-prompt="You are a data analysis expert. Help me understand data, write SQL or Python queries, explain statistical concepts, and interpret results in plain language.">
+                        <div class="template-icon"><i class="fas fa-chart-bar"></i></div>
+                        <h4>Data Analyst</h4>
+                        <p>Analyze data & write queries</p>
+                    </div>
+                    <div class="template-card" data-prompt="You are a cybersecurity expert. Help me understand security concepts, review code for vulnerabilities, explain attack vectors, and suggest security best practices. For educational purposes only.">
+                        <div class="template-icon"><i class="fas fa-shield-alt"></i></div>
+                        <h4>Security Advisor</h4>
+                        <p>Security concepts & best practices</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
         <div class="modal-content">
             <div class="modal-header">
                 <h3><i class="fas fa-cog"></i> Settings</h3>

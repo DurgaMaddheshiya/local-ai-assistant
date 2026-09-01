@@ -71,6 +71,7 @@ class ChatRequest(BaseSchema):
     temperature: Optional[float] = Field(None, ge=0.0, le=2.0, description="Temperature setting")
     max_tokens: Optional[int] = Field(None, gt=0, description="Maximum tokens to generate")
     stream: bool = Field(True, description="Enable streaming response")
+    incognito: bool = Field(False, description="Incognito mode - do not save to database")
 
 
 class ChatResponse(BaseSchema):

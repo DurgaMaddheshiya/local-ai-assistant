@@ -10,6 +10,7 @@ class App {
         this.currentTheme = 'light';
         this.connectionStatus = 'offline';
         this.isRecording = false;
+        this.incognitoMode = false;
 
         this.initializeApp();
     }
@@ -79,6 +80,13 @@ class App {
         this.clearAllDataBtn = document.getElementById('clear-all-data');
         this.saveSettingsBtn = document.getElementById('save-settings');
         
+        this.incognitoBtn = document.getElementById('incognito-btn');
+        this.incognitoBanner = document.getElementById('incognito-banner');
+        this.exitIncognitoBtn = document.getElementById('exit-incognito-btn');
+        this.templatesBtn = document.getElementById('templates-btn');
+        this.templatesModal = document.getElementById('templates-modal');
+        this.closeTemplatesBtn = document.getElementById('close-templates');
+
         // Accent color elements
         this.accentColorPicker = document.getElementById('accent-color-picker');
         this.accentPresets = document.querySelectorAll('.accent-preset');
@@ -124,6 +132,28 @@ class App {
         this.clearAllDataBtn.addEventListener('click', () => this.confirmClearAllData());
         this.saveSettingsBtn.addEventListener('click', () => this.saveSettings());
         
+        // Incognito events
+        if (this.incognitoBtn) {
+            this.incognitoBtn.addEventListener('click', () => this.toggleIncognito());
+        }
+        if (this.exitIncognitoBtn) {
+            this.exitIncognitoBtn.addEventListener('click', () => this.toggleIncognito(false));
+        }
+
+        // Templates events
+        if (this.templatesBtn) {
+            this.templatesBtn.addEventListener('click', () => this.openTemplates());
+        }
+        if (this.closeTemplatesBtn) {
+            this.closeTemplatesBtn.addEventListener('click', () => this.closeTemplates());
+        }
+        document.querySelectorAll('.template-card').forEach(card => {
+            card.addEventListener('click', () => this.applyTemplate(card.dataset.prompt));
+        });
+        window.addEventListener('click', (e) => {
+            if (e.target === this.templatesModal) this.closeTemplates();
+        });
+
         // Accent color events
         if (this.accentColorPicker) {
             this.accentColorPicker.addEventListener('input', (e) => this.applyAccentColor(e.target.value));
@@ -313,6 +343,56 @@ class App {
         this.clearSearchBtn.style.display = 'none';
         this.filteredConversations = this.conversations;
         this.renderConversations();
+    }
+
+    // ── Incognito Mode ────────────────────────────────────────────────────
+
+    toggleIncognito(forceState = null) {
+        this.incognitoMode = forceState !== null ? forceState : !this.incognitoMode;
+
+        // Update button appearance
+        this.incognitoBtn.classList.toggle('active', this.incognitoMode);
+        const icon = this.incognitoBtn.querySelector('i');
+        icon.style.color = this.incognitoMode ? '#a855f7' : '';
+
+        // Show/hide banner
+        if (this.incognitoBanner) {
+            this.incognitoBanner.style.display = this.incognitoMode ? 'flex' : 'none';
+        }
+
+        // Start a fresh chat in incognito (clear conversation ID)
+        if (this.incognitoMode && this.chatManager) {
+            this.chatManager.startNewChat();
+            this.chatManager.currentConversationId = null;
+        }
+
+        this.showToast(
+            this.incognitoMode ? 'Incognito mode ON — chats won\'t be saved' : 'Incognito mode OFF',
+            this.incognitoMode ? 'warning' : 'success'
+        );
+    }
+
+    // ── Conversation Templates ────────────────────────────────────────────
+
+    openTemplates() {
+        if (this.templatesModal) this.templatesModal.style.display = 'flex';
+    }
+
+    closeTemplates() {
+        if (this.templatesModal) this.templatesModal.style.display = 'none';
+    }
+
+    async applyTemplate(systemPrompt) {
+        this.closeTemplates();
+        // Start new chat
+        await this.chatManager.startNewChat();
+        // Override system prompt for this session only (stored in chatManager)
+        this.chatManager.templateSystemPrompt = systemPrompt;
+        this.showToast('Template applied — start chatting!', 'success');
+        // Focus input
+        if (this.chatManager.messageInput) {
+            this.chatManager.messageInput.focus();
+        }
     }
 
     // ── Accent Color ──────────────────────────────────────────────────────

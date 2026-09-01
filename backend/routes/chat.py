@@ -117,11 +117,15 @@ async def chat_endpoint(
                 }
             )
         
-        # Get or create conversation
+        # Get or create conversation (skip in incognito mode)
         conversation_id = request.conversation_id
         conversation = None
-        
-        if conversation_id:
+
+        if request.incognito:
+            # Incognito: use a temporary in-memory conversation ID, no DB
+            conversation_id = conversation_id or f"incognito-{uuid.uuid4().hex[:8]}"
+            logger.info(f"Incognito mode - conversation not saved: {conversation_id}")
+        elif conversation_id:
             conversation = get_conversation_with_messages(db, conversation_id)
             if not conversation:
                 raise HTTPException(
@@ -138,9 +142,10 @@ async def chat_endpoint(
             conversation = create_conversation(db, title, current_model)
             conversation_id = conversation.id
             logger.info(f"Created new conversation: {conversation_id}")
-        
-        # Save user message
-        user_message = create_message(db, conversation_id, "user", request.message)
+
+        # Save user message (skip in incognito)
+        if not request.incognito:
+            user_message = create_message(db, conversation_id, "user", request.message)
         
         # Prepare messages for LLM
         messages = await _prepare_messages_for_llm(db, conversation_id, request.message)
@@ -154,41 +159,41 @@ async def chat_endpoint(
         await ollama_service.set_model(model)
         
         if request.stream:
-            # Return streaming response
             return StreamingResponse(
                 _stream_chat_response(
                     ollama_service, messages, conversation_id, db,
-                    temperature, max_tokens, model
+                    temperature, max_tokens, model,
+                    incognito=request.incognito
                 ),
                 media_type="text/plain"
             )
         else:
-            # Return complete response
             response = await ollama_service.generate_single_response(
                 messages=messages,
                 model=model,
                 temperature=temperature,
                 max_tokens=max_tokens
             )
-            
+
             if "error" in response:
                 raise HTTPException(
                     status_code=500,
-                    detail={
-                        "error": "AI generation failed",
-                        "detail": response["error"]
-                    }
+                    detail={"error": "AI generation failed", "detail": response["error"]}
                 )
-            
-            # Save assistant response
-            assistant_message = create_message(db, conversation_id, "assistant", response["content"])
-            
+
+            # Save assistant response (skip in incognito)
+            if not request.incognito:
+                assistant_message = create_message(db, conversation_id, "assistant", response["content"])
+                msg_id = assistant_message.id
+            else:
+                msg_id = str(uuid.uuid4())
+
             return ChatResponse(
                 conversation_id=conversation_id,
-                message_id=assistant_message.id,
+                message_id=msg_id,
                 content=response["content"],
                 model=response["model"],
-                created_at=assistant_message.created_at
+                created_at=datetime.utcnow()
             )
             
     except HTTPException:
@@ -211,7 +216,8 @@ async def _stream_chat_response(
     db: Session,
     temperature: float,
     max_tokens: int,
-    model: str
+    model: str,
+    incognito: bool = False
 ):
     """
     Stream chat response chunks
@@ -253,8 +259,11 @@ async def _stream_chat_response(
                 
                 # Save complete response when done
                 if chunk.get("done", False):
-                    create_message(db, conversation_id, "assistant", full_response)
-                    logger.info(f"Saved assistant message: {len(full_response)} characters")
+                    if not incognito:
+                        create_message(db, conversation_id, "assistant", full_response)
+                        logger.info(f"Saved assistant message: {len(full_response)} characters")
+                    else:
+                        logger.info(f"Incognito: skipped saving {len(full_response)} chars")
                     break
         
         # Send final done chunk if not already sent
@@ -268,7 +277,7 @@ async def _stream_chat_response(
             yield f"data: {final_chunk.model_dump_json()}\n\n"
             
             # Save response if not already saved
-            if full_response:
+            if full_response and not incognito:
                 create_message(db, conversation_id, "assistant", full_response)
         
     except Exception as e:
