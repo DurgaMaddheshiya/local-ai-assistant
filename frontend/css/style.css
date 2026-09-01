@@ -309,7 +309,7 @@ body {
 }
 
 .sidebar-footer {
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 0.75rem 0.75rem 0.75rem;
     border-top: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
@@ -319,7 +319,7 @@ body {
 .sidebar-buttons {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.4rem;
 }
 
 .settings-btn {
@@ -345,23 +345,24 @@ body {
 .status-indicator {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-size: 0.75rem;
+    gap: 0.4rem;
+    font-size: 0.72rem;
     color: var(--text-muted);
+    padding: 0.2rem 0;
 }
 
 .sidebar-disclaimer {
     background-color: var(--background-tertiary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    padding: 0.5rem;
+    padding: 0.4rem 0.5rem;
     margin-top: 0.5rem;
     text-align: center;
 }
 
 .sidebar-disclaimer small {
-    font-size: 0.7rem;
-    line-height: 1.3;
+    font-size: 0.68rem;
+    line-height: 1.2;
     color: var(--text-secondary);
 }
 
