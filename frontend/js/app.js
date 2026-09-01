@@ -19,6 +19,7 @@ class App {
         this.bindEvents();
         this.loadTheme();
         this.loadSidebarState();
+        this.loadAccentColor();
         
         // Apply app opacity from localStorage
         const appOpacity = localStorage.getItem('appOpacity') || '100';
@@ -30,6 +31,7 @@ class App {
         
         // Initialize chat manager
         this.chatManager = new ChatManager();
+        window.chatManager = this.chatManager; // expose for code copy buttons
         
         // Check system status
         await this.checkSystemStatus();
@@ -77,6 +79,10 @@ class App {
         this.clearAllDataBtn = document.getElementById('clear-all-data');
         this.saveSettingsBtn = document.getElementById('save-settings');
         
+        // Accent color elements
+        this.accentColorPicker = document.getElementById('accent-color-picker');
+        this.accentPresets = document.querySelectorAll('.accent-preset');
+
         // Shortcut recorder elements
         this.shortcutDisplay = document.getElementById('shortcut-display');
         this.shortcutKeysLabel = document.getElementById('shortcut-keys-label');
@@ -118,6 +124,18 @@ class App {
         this.clearAllDataBtn.addEventListener('click', () => this.confirmClearAllData());
         this.saveSettingsBtn.addEventListener('click', () => this.saveSettings());
         
+        // Accent color events
+        if (this.accentColorPicker) {
+            this.accentColorPicker.addEventListener('input', (e) => this.applyAccentColor(e.target.value));
+        }
+        this.accentPresets.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const color = btn.dataset.color;
+                this.applyAccentColor(color);
+                if (this.accentColorPicker) this.accentColorPicker.value = color;
+            });
+        });
+
         // Shortcut recorder events
         this.recordShortcutBtn.addEventListener('click', () => this.startRecording());
         this.resetShortcutBtn.addEventListener('click', () => this.resetShortcut());
@@ -295,6 +313,35 @@ class App {
         this.clearSearchBtn.style.display = 'none';
         this.filteredConversations = this.conversations;
         this.renderConversations();
+    }
+
+    // ── Accent Color ──────────────────────────────────────────────────────
+
+    applyAccentColor(hex) {
+        // Derive hover color (darken by ~20%)
+        const hover = this.darkenColor(hex, 0.2);
+        document.documentElement.style.setProperty('--primary-color', hex);
+        document.documentElement.style.setProperty('--primary-hover', hover);
+        document.documentElement.style.setProperty('--danger-color', hex);
+        localStorage.setItem('accentColor', hex);
+        // Update active state on presets
+        this.accentPresets.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.color === hex);
+        });
+        if (this.accentColorPicker) this.accentColorPicker.value = hex;
+    }
+
+    darkenColor(hex, amount) {
+        const num = parseInt(hex.replace('#',''), 16);
+        const r = Math.max(0, (num >> 16) - Math.round(255 * amount));
+        const g = Math.max(0, ((num >> 8) & 0xff) - Math.round(255 * amount));
+        const b = Math.max(0, (num & 0xff) - Math.round(255 * amount));
+        return '#' + [r, g, b].map(v => v.toString(16).padStart(2,'0')).join('');
+    }
+
+    loadAccentColor() {
+        const saved = localStorage.getItem('accentColor') || '#e50914';
+        this.applyAccentColor(saved);
     }
 
     // ── Shortcut Recorder ─────────────────────────────────────────────────
@@ -477,6 +524,7 @@ class App {
         await this.loadSettings();
         await this.updateSystemStatusInSettings();
         this.loadShortcutDisplay();
+        this.loadAccentColor();
     }
 
     closeSettings() {

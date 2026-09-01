@@ -1051,6 +1051,179 @@ body {
     background-color: #b91c1c;
 }
 
+/* Accent Color Picker */
+.accent-color-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.accent-presets {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.accent-preset {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s;
+    padding: 0;
+}
+
+.accent-preset:hover {
+    transform: scale(1.2);
+}
+
+.accent-preset.active {
+    border-color: var(--text-primary);
+    transform: scale(1.15);
+}
+
+#accent-color-picker {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: none;
+    cursor: pointer;
+}
+
+/* Code block copy button */
+.code-block-wrapper {
+    position: relative;
+    margin: 0.75rem 0;
+}
+
+.code-block-wrapper pre {
+    margin: 0;
+}
+
+.copy-code-btn {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.4rem;
+    padding: 0.25rem 0.5rem;
+    background: var(--background-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s, color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.code-block-wrapper:hover .copy-code-btn {
+    opacity: 1;
+}
+
+.copy-code-btn:hover {
+    color: var(--text-primary);
+    background: var(--background-tertiary);
+}
+
+.copy-code-btn.copied {
+    color: var(--success-color);
+    border-color: var(--success-color);
+}
+
+/* Message Edit */
+.message.user .message-content {
+    position: relative;
+}
+
+.edit-message-btn {
+    position: absolute;
+    top: -0.5rem;
+    left: 0.5rem;
+    padding: 0.3rem 0.5rem;
+    background: var(--background-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s, color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.message.user:hover .edit-message-btn {
+    opacity: 1;
+}
+
+.edit-message-btn:hover {
+    color: var(--text-primary);
+}
+
+.message-edit-area {
+    display: none;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.message-edit-area.active {
+    display: flex;
+}
+
+.message-edit-textarea {
+    width: 100%;
+    min-height: 60px;
+    padding: 0.5rem 0.75rem;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: var(--radius-md);
+    color: white;
+    font-size: 0.9rem;
+    resize: vertical;
+    outline: none;
+    font-family: inherit;
+    line-height: 1.5;
+}
+
+.message-edit-textarea:focus {
+    border-color: rgba(255,255,255,0.7);
+}
+
+.message-edit-actions {
+    display: flex;
+    gap: 0.4rem;
+    justify-content: flex-end;
+}
+
+.edit-save-btn, .edit-cancel-btn {
+    padding: 0.3rem 0.7rem;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.edit-save-btn {
+    background: white;
+    color: var(--primary-color);
+}
+
+.edit-save-btn:hover { opacity: 0.85; }
+
+.edit-cancel-btn {
+    background: rgba(255,255,255,0.2);
+    color: white;
+}
+
+.edit-cancel-btn:hover { opacity: 0.75; }
+
 /* Shortcut Recorder */
 .shortcut-recorder-row {
     display: flex;

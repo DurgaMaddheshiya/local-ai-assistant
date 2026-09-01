@@ -147,13 +147,14 @@ class ChatManager {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${role}`;
         messageDiv.dataset.messageId = messageId || Date.now().toString();
+        messageDiv.dataset.rawContent = content;
 
         const contentDiv = document.createElement('div');
         contentDiv.className = 'message-content';
 
         const textDiv = document.createElement('div');
         textDiv.className = 'message-text';
-        
+
         if (role === 'assistant') {
             textDiv.innerHTML = this.formatMessage(content);
         } else {
@@ -162,7 +163,29 @@ class ChatManager {
 
         contentDiv.appendChild(textDiv);
 
-        // Add message actions
+        // User messages: edit button + inline edit area
+        if (role === 'user') {
+            const editBtn = document.createElement('button');
+            editBtn.className = 'edit-message-btn';
+            editBtn.innerHTML = '<i class="fas fa-pencil-alt"></i> Edit';
+            editBtn.title = 'Edit message';
+            editBtn.addEventListener('click', () => this.startEditMessage(messageDiv));
+            contentDiv.appendChild(editBtn);
+
+            const editArea = document.createElement('div');
+            editArea.className = 'message-edit-area';
+            editArea.innerHTML = `
+                <textarea class="message-edit-textarea"></textarea>
+                <div class="message-edit-actions">
+                    <button class="edit-cancel-btn">Cancel</button>
+                    <button class="edit-save-btn"><i class="fas fa-paper-plane"></i> Send</button>
+                </div>`;
+            editArea.querySelector('.edit-cancel-btn').addEventListener('click', () => this.cancelEditMessage(messageDiv));
+            editArea.querySelector('.edit-save-btn').addEventListener('click', () => this.saveEditMessage(messageDiv));
+            contentDiv.appendChild(editArea);
+        }
+
+        // Assistant messages: action bar
         if (role === 'assistant') {
             const actionsDiv = this.createMessageActions(content);
             contentDiv.appendChild(actionsDiv);
@@ -170,9 +193,68 @@ class ChatManager {
 
         messageDiv.appendChild(contentDiv);
         this.chatMessages.appendChild(messageDiv);
-        
         this.scrollToBottom();
         return messageDiv;
+    }
+
+    startEditMessage(messageDiv) {
+        const textDiv = messageDiv.querySelector('.message-text');
+        const editArea = messageDiv.querySelector('.message-edit-area');
+        const textarea = editArea.querySelector('.message-edit-textarea');
+        textarea.value = messageDiv.dataset.rawContent;
+        textDiv.style.display = 'none';
+        editArea.classList.add('active');
+        textarea.focus();
+        textarea.selectionStart = textarea.value.length;
+    }
+
+    cancelEditMessage(messageDiv) {
+        const textDiv = messageDiv.querySelector('.message-text');
+        const editArea = messageDiv.querySelector('.message-edit-area');
+        textDiv.style.display = '';
+        editArea.classList.remove('active');
+    }
+
+    async saveEditMessage(messageDiv) {
+        const editArea = messageDiv.querySelector('.message-edit-area');
+        const textarea = editArea.querySelector('.message-edit-textarea');
+        const newContent = textarea.value.trim();
+        if (!newContent) return;
+
+        // Update display
+        messageDiv.dataset.rawContent = newContent;
+        messageDiv.querySelector('.message-text').textContent = newContent;
+        this.cancelEditMessage(messageDiv);
+
+        // Remove all messages after this one
+        let next = messageDiv.nextElementSibling;
+        while (next) {
+            const toRemove = next;
+            next = next.nextElementSibling;
+            toRemove.remove();
+        }
+
+        // Re-send the edited message
+        if (!this.isGenerating) {
+            try {
+                this.setGenerating(true);
+                const typingId = this.addTypingIndicator();
+                const response = await window.api.sendStreamingMessage(
+                    newContent,
+                    this.currentConversationId,
+                    {
+                        model: this.modelSelect.value || null,
+                        temperature: parseFloat(localStorage.getItem('temperature') || '0.7'),
+                        max_tokens: parseInt(localStorage.getItem('max_tokens') || '2048')
+                    }
+                );
+                await this.handleStreamingResponse(response, typingId);
+            } catch (error) {
+                this.showError('Failed to send edited message: ' + error.toString());
+            } finally {
+                this.setGenerating(false);
+            }
+        }
     }
 
     updateMessageContent(messageElement, content) {
@@ -189,12 +271,35 @@ class ChatManager {
             .replace(/`([^`]+)`/g, '<code>$1</code>')
             .replace(/\n/g, '<br>');
 
-        // Handle code blocks
+        // Handle code blocks - wrap in .code-block-wrapper with copy button
         formatted = formatted.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
-            return `<pre><code class="${lang || ''}">${code.trim()}</code></pre>`;
+            const escaped = code.trim()
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+            return `<div class="code-block-wrapper">
+                <button class="copy-code-btn" onclick="window.chatManager.copyCodeBlock(this)">
+                    <i class="fas fa-copy"></i> Copy
+                </button>
+                <pre><code class="${lang || ''}">${escaped}</code></pre>
+            </div>`;
         });
 
         return formatted;
+    }
+
+    copyCodeBlock(btn) {
+        const code = btn.closest('.code-block-wrapper').querySelector('code').innerText;
+        navigator.clipboard.writeText(code).then(() => {
+            btn.innerHTML = '<i class="fas fa-check"></i> Copied';
+            btn.classList.add('copied');
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+                btn.classList.remove('copied');
+            }, 2000);
+        }).catch(() => {
+            window.app.showToast('Failed to copy code', 'error');
+        });
     }
 
     createMessageActions(content) {
@@ -443,3 +548,4 @@ class ChatManager {
 
 // Export chat manager
 window.ChatManager = ChatManager;
+window.chatManager = null; // set by app.js after init
