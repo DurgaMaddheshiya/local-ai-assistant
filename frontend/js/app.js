@@ -21,6 +21,7 @@ class App {
         this.loadTheme();
         this.loadSidebarState();
         this.loadAccentColor();
+        this.loadZoom();
         
         // Apply app opacity from localStorage
         const appOpacity = localStorage.getItem('appOpacity') || '100';
@@ -96,6 +97,11 @@ class App {
         this.geminiKeyInput = document.getElementById('gemini-key-input');
         this.claudeKeyInput = document.getElementById('claude-key-input');
 
+        // Zoom controls
+        this.zoomInBtn = document.getElementById('zoom-in-btn');
+        this.zoomOutBtn = document.getElementById('zoom-out-btn');
+        this.zoomLevel = document.getElementById('zoom-level');
+
         // Shortcut recorder elements
         this.shortcutDisplay = document.getElementById('shortcut-display');
         this.shortcutKeysLabel = document.getElementById('shortcut-keys-label');
@@ -138,6 +144,10 @@ class App {
         // Incognito events
         this.incognitoBtn?.addEventListener('click', () => this.toggleIncognito());
         this.exitIncognitoBtn?.addEventListener('click', () => this.toggleIncognito(false));
+
+        // Zoom events
+        this.zoomInBtn?.addEventListener('click', () => this.adjustZoom(10));
+        this.zoomOutBtn?.addEventListener('click', () => this.adjustZoom(-10));
 
         // Templates events
         this.templatesBtn?.addEventListener('click', () => this.openTemplates());
@@ -710,6 +720,31 @@ class App {
             const opacityValue = opacity / 100;
             this.sidebarDisclaimer.style.opacity = opacityValue;
         }
+    }
+
+    // Zoom functionality
+    adjustZoom(change) {
+        const current = parseInt(localStorage.getItem('zoomLevel') || '100');
+        let newZoom = current + change;
+        
+        // Limit zoom between 50% and 150%
+        newZoom = Math.max(50, Math.min(150, newZoom));
+        
+        localStorage.setItem('zoomLevel', newZoom);
+        this.applyZoom(newZoom);
+    }
+
+    applyZoom(level) {
+        const zoomDecimal = level / 100;
+        document.body.style.zoom = zoomDecimal;
+        if (this.zoomLevel) {
+            this.zoomLevel.textContent = level + '%';
+        }
+    }
+
+    loadZoom() {
+        const saved = localStorage.getItem('zoomLevel') || '100';
+        this.applyZoom(parseInt(saved));
     }
 
     async updateSystemStatusInSettings() {
