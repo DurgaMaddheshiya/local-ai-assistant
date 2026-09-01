@@ -7,6 +7,9 @@ pydantic-settings>=2.1.0
 # Desktop window (no browser needed)
 pywebview>=4.0.0
 
+# Global hotkey support (Ctrl+H hide/show)
+keyboard>=0.13.5
+
 # Database
 sqlalchemy>=2.0.0
 alembic>=1.13.0

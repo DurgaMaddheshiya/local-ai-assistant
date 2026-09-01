@@ -11,6 +11,7 @@ import logging
 
 import uvicorn
 import webview
+import keyboard  # global hotkey support
 
 # -- logging ------------------------------------------------------------------
 logging.basicConfig(
@@ -32,22 +33,24 @@ class WindowAPI:
     def __init__(self):
         self._window = None
         self._visible = True
+        self._lock = threading.Lock()
 
     def set_window(self, win):
         self._window = win
 
     def toggle_visibility(self):
-        """Ctrl+H handler - hide or show the window."""
+        """Toggle window hide/show - called from global hotkey thread."""
         if self._window is None:
             return
-        if self._visible:
-            self._window.hide()
-            self._visible = False
-            log.info("Window hidden  (Ctrl+H)")
-        else:
-            self._window.show()
-            self._visible = True
-            log.info("Window shown   (Ctrl+H)")
+        with self._lock:
+            if self._visible:
+                self._window.hide()
+                self._visible = False
+                log.info("Window hidden  (Ctrl+H)")
+            else:
+                self._window.show()
+                self._visible = True
+                log.info("Window shown   (Ctrl+H)")
 
 
 # -- port helper --------------------------------------------------------------
@@ -109,6 +112,18 @@ def wait_for_backend(timeout: int = 30) -> bool:
     return False
 
 
+# -- global hotkey thread -----------------------------------------------------
+def start_hotkey_listener(api: WindowAPI):
+    """Register Ctrl+H as a global hotkey in a background thread.
+    This works even when the window is hidden / not focused."""
+    def on_ctrl_h():
+        api.toggle_visibility()
+
+    keyboard.add_hotkey('ctrl+h', on_ctrl_h, suppress=True)
+    log.info("Global hotkey Ctrl+H registered")
+    keyboard.wait()   # blocks forever, keeping the listener alive
+
+
 # -- main ---------------------------------------------------------------------
 def main():
     # 1. Start backend in background thread
@@ -139,6 +154,14 @@ def main():
 
     # Give API a reference to the window
     api.set_window(window)
+
+    # 5. Start global hotkey listener in background thread
+    hotkey_thread = threading.Thread(
+        target=start_hotkey_listener,
+        args=(api,),
+        daemon=True
+    )
+    hotkey_thread.start()
 
     log.info("Opening desktop window at %s", URL)
     webview.start(debug=False)
