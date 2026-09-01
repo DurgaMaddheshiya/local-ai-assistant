@@ -149,21 +149,22 @@ async def chat_endpoint(
         
         # Prepare messages for LLM
         messages = await _prepare_messages_for_llm(db, conversation_id, request.message)
-        
+
         # Get settings
         temperature = request.temperature or float(get_setting(db, "temperature", str(settings.default_temperature)))
         max_tokens = request.max_tokens or int(get_setting(db, "max_tokens", str(settings.default_max_tokens)))
         model = request.model or get_setting(db, "current_model", settings.ollama_model)
-        
+
         # Set the model in Ollama service
         await ollama_service.set_model(model)
-        
+
         if request.stream:
             return StreamingResponse(
                 _stream_chat_response(
                     ollama_service, messages, conversation_id, db,
                     temperature, max_tokens, model,
-                    incognito=request.incognito
+                    incognito=request.incognito,
+                    images=request.images
                 ),
                 media_type="text/plain"
             )
@@ -172,7 +173,8 @@ async def chat_endpoint(
                 messages=messages,
                 model=model,
                 temperature=temperature,
-                max_tokens=max_tokens
+                max_tokens=max_tokens,
+                images=request.images
             )
 
             if "error" in response:
@@ -217,7 +219,8 @@ async def _stream_chat_response(
     temperature: float,
     max_tokens: int,
     model: str,
-    incognito: bool = False
+    incognito: bool = False,
+    images: Optional[List[str]] = None
 ):
     """
     Stream chat response chunks
@@ -231,7 +234,8 @@ async def _stream_chat_response(
             model=model,
             temperature=temperature,
             max_tokens=max_tokens,
-            stream=True
+            stream=True,
+            images=images
         ):
             if "error" in chunk:
                 # Send error chunk

@@ -1216,6 +1216,121 @@ body {
 
 .edit-cancel-btn:hover { opacity: 0.75; }
 
+/* Image Drag & Drop */
+.chat-input-container {
+    position: relative;
+}
+
+.drag-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    border: 2px dashed var(--primary-color);
+    border-radius: var(--radius-lg);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.drag-overlay-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary-color);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.drag-overlay-inner i { font-size: 2.5rem; }
+
+.chat-input-container.drag-active {
+    outline: 2px dashed var(--primary-color);
+    border-radius: var(--radius-lg);
+}
+
+.image-preview-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.5rem 0 0.4rem 0;
+}
+
+.image-preview-chip {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.image-preview-chip img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.remove-img-btn {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.75);
+    border: none;
+    color: white;
+    font-size: 0.6rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.remove-img-btn:hover { background: var(--danger-color); }
+
+.attach-image-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    margin-right: 4px;
+}
+
+.attach-image-btn:hover {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.message-images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 0.5rem;
+}
+
+.message-image {
+    max-width: 240px;
+    max-height: 180px;
+    border-radius: var(--radius-md);
+    object-fit: cover;
+    border: 1px solid rgba(255,255,255,0.15);
+    cursor: zoom-in;
+}
+
 /* Incognito Mode */
 .incognito-btn {
     display: flex;

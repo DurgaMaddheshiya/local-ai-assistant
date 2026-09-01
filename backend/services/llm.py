@@ -118,119 +118,110 @@ class OllamaService:
             return False
     
     async def generate_response(
-        self, 
-        messages: List[Dict], 
+        self,
+        messages: List[Dict],
         model: Optional[str] = None,
         temperature: float = 0.7,
         max_tokens: Optional[int] = None,
-        stream: bool = True
+        stream: bool = True,
+        images: Optional[List[str]] = None
     ) -> AsyncGenerator[Dict, None]:
-        """Generate a response from the LLM"""
-        
+        """Generate a response from the LLM using /api/chat (supports multimodal)"""
+
         model_to_use = model or self.current_model
-        
-        # Prepare the prompt from messages
-        prompt = self._format_messages_for_ollama(messages)
-        
+
+        # Build messages list for /api/chat
+        api_messages = []
+        for msg in messages:
+            entry = {"role": msg["role"], "content": msg["content"]}
+            # Attach images to the last user message
+            if images and msg["role"] == "user" and msg is messages[-1]:
+                entry["images"] = images
+            api_messages.append(entry)
+
         payload = {
             "model": model_to_use,
-            "prompt": prompt,
+            "messages": api_messages,
             "stream": stream,
-            "options": {
-                "temperature": temperature,
-            }
+            "options": {"temperature": temperature}
         }
-        
-        # Add max_tokens if specified
         if max_tokens:
             payload["options"]["num_predict"] = max_tokens
-        
+
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 async with client.stream(
                     "POST",
-                    f"{self.base_url}/api/generate",
+                    f"{self.base_url}/api/chat",
                     json=payload
                 ) as response:
-                    
+
                     if response.status_code != 200:
                         error_msg = f"Ollama API error: HTTP {response.status_code}"
                         logger.error(error_msg)
-                        yield {
-                            "error": error_msg,
-                            "done": True
-                        }
+                        yield {"error": error_msg, "done": True}
                         return
-                    
+
                     full_response = ""
-                    
+
                     async for line in response.aiter_lines():
                         if line.strip():
                             try:
                                 chunk = json.loads(line)
-                                
-                                if "response" in chunk:
-                                    content = chunk["response"]
+                                # /api/chat returns chunk.message.content
+                                content = chunk.get("message", {}).get("content", "")
+                                done = chunk.get("done", False)
+
+                                if content:
                                     full_response += content
-                                    
-                                    yield {
-                                        "content": content,
-                                        "done": chunk.get("done", False),
-                                        "model": model_to_use
-                                    }
-                                
-                                if chunk.get("done", False):
+                                    yield {"content": content, "done": done, "model": model_to_use}
+
+                                if done:
                                     logger.info(f"Generated response length: {len(full_response)}")
                                     break
-                                    
+
                             except json.JSONDecodeError as e:
                                 logger.error(f"JSON decode error: {e}")
                                 continue
-                                
+
         except Exception as e:
             error_msg = f"Error generating response: {e}"
             logger.error(error_msg)
-            yield {
-                "error": error_msg,
-                "done": True
-            }
+            yield {"error": error_msg, "done": True}
     
     async def generate_single_response(
         self,
         messages: List[Dict],
         model: Optional[str] = None,
         temperature: float = 0.7,
-        max_tokens: Optional[int] = None
+        max_tokens: Optional[int] = None,
+        images: Optional[List[str]] = None
     ) -> Dict:
         """Generate a complete response (non-streaming)"""
-        
+
         full_response = ""
         error = None
-        
+
         async for chunk in self.generate_response(
             messages=messages,
             model=model,
             temperature=temperature,
             max_tokens=max_tokens,
-            stream=True
+            stream=True,
+            images=images
         ):
             if "error" in chunk:
                 error = chunk["error"]
                 break
-            
             if "content" in chunk:
                 full_response += chunk["content"]
-            
             if chunk.get("done", False):
                 break
-        
+
         if error:
             return {"error": error}
-        
-        return {
-            "content": full_response,
-            "model": model or self.current_model
-        }
+
+        return {"content": full_response, "model": model or self.current_model}
     
     def _format_messages_for_ollama(self, messages: List[Dict]) -> str:
         """Format conversation messages for Ollama prompt"""

@@ -142,12 +142,25 @@
 
                 <!-- Chat input -->
                 <div class="chat-input-container">
+                    <!-- Drag overlay -->
+                    <div id="drag-overlay" class="drag-overlay" style="display:none;">
+                        <div class="drag-overlay-inner">
+                            <i class="fas fa-image"></i>
+                            <span>Drop image here</span>
+                        </div>
+                    </div>
+                    <!-- Image previews -->
+                    <div id="image-preview-row" class="image-preview-row" style="display:none;"></div>
                     <div class="chat-input-wrapper">
                         <textarea 
                             id="message-input" 
-                            placeholder="Type your message... (Shift+Enter for new line)"
+                            placeholder="Type your message... (Shift+Enter for new line, or drag/paste an image)"
                             rows="1"
                         ></textarea>
+                        <button id="attach-image-btn" class="attach-image-btn" title="Attach image">
+                            <i class="fas fa-image"></i>
+                        </button>
+                        <input type="file" id="image-file-input" accept="image/*" style="display:none;" multiple>
                         <button id="send-btn" class="send-btn" disabled>
                             <i class="fas fa-paper-plane"></i>
                         </button>

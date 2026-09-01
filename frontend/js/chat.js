@@ -8,6 +8,7 @@ class ChatManager {
         this.isGenerating = false;
         this.currentStreamReader = null;
         this.templateSystemPrompt = null;
+        this.pendingImages = []; // [{dataUrl, base64}]
         
         this.initializeElements();
         this.bindEvents();
@@ -22,6 +23,11 @@ class ChatManager {
         this.sendBtn = document.getElementById('send-btn');
         this.stopBtn = document.getElementById('stop-btn');
         this.conversationTitle = document.getElementById('current-conversation-title');
+        this.imagePreviewRow = document.getElementById('image-preview-row');
+        this.dragOverlay = document.getElementById('drag-overlay');
+        this.attachImageBtn = document.getElementById('attach-image-btn');
+        this.imageFileInput = document.getElementById('image-file-input');
+        this.chatInputContainer = document.querySelector('.chat-input-container');
         
         // Control elements
         this.modelSelect = document.getElementById('model-select');
@@ -33,23 +39,66 @@ class ChatManager {
         // Message input events
         this.messageInput.addEventListener('input', () => this.handleInputChange());
         this.messageInput.addEventListener('keydown', (e) => this.handleKeyDown(e));
-        
+
         // Button events
         this.sendBtn.addEventListener('click', () => this.sendMessage());
         this.stopBtn.addEventListener('click', () => this.stopGeneration());
         this.clearConversationBtn.addEventListener('click', () => this.clearConversation());
         this.editTitleBtn.addEventListener('click', () => this.editConversationTitle());
-        
+
         // Model selection
         this.modelSelect.addEventListener('change', () => this.handleModelChange());
-        
+
         // Auto-resize textarea
         this.messageInput.addEventListener('input', () => this.resizeTextarea());
+
+        // Image attach button
+        this.attachImageBtn?.addEventListener('click', () => this.imageFileInput.click());
+        this.imageFileInput?.addEventListener('change', (e) => {
+            [...e.target.files].forEach(f => this.addImageFile(f));
+            e.target.value = '';
+        });
+
+        // Paste image from clipboard
+        this.messageInput.addEventListener('paste', (e) => {
+            const items = e.clipboardData?.items || [];
+            for (const item of items) {
+                if (item.type.startsWith('image/')) {
+                    e.preventDefault();
+                    this.addImageFile(item.getAsFile());
+                }
+            }
+        });
+
+        // Drag & drop on chat input container
+        const container = this.chatInputContainer;
+        if (container) {
+            container.addEventListener('dragenter', (e) => { e.preventDefault(); this.showDragOverlay(); });
+            container.addEventListener('dragover',  (e) => { e.preventDefault(); });
+            container.addEventListener('dragleave', (e) => {
+                if (!container.contains(e.relatedTarget)) this.hideDragOverlay();
+            });
+            container.addEventListener('drop', (e) => {
+                e.preventDefault();
+                this.hideDragOverlay();
+                const files = [...(e.dataTransfer.files || [])].filter(f => f.type.startsWith('image/'));
+                files.forEach(f => this.addImageFile(f));
+            });
+        }
+
+        // Also allow drop on whole chat area
+        this.chatMessages?.addEventListener('dragover', (e) => e.preventDefault());
+        this.chatMessages?.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const files = [...(e.dataTransfer.files || [])].filter(f => f.type.startsWith('image/'));
+            if (files.length) files.forEach(f => this.addImageFile(f));
+        });
     }
 
     handleInputChange() {
         const hasText = this.messageInput.value.trim().length > 0;
-        this.sendBtn.disabled = !hasText || this.isGenerating;
+        const hasImages = this.pendingImages.length > 0;
+        this.sendBtn.disabled = (!hasText && !hasImages) || this.isGenerating;
     }
 
     handleKeyDown(event) {
@@ -68,38 +117,37 @@ class ChatManager {
 
     async sendMessage() {
         const message = this.messageInput.value.trim();
-        if (!message || this.isGenerating) return;
+        const hasImages = this.pendingImages.length > 0;
+        if (!message && !hasImages || this.isGenerating) return;
+
+        const imagesToSend = [...this.pendingImages];
+        this.clearPendingImages();
 
         try {
             this.setGenerating(true);
             this.clearInput();
 
-            // Show user message
-            this.addMessage('user', message);
+            // Show user message with images
+            this.addMessage('user', message || '📎 [Image]', null, imagesToSend);
 
-            // Show typing indicator
             const typingId = this.addTypingIndicator();
 
-            // Build options - include incognito flag and template system prompt
             const isIncognito = window.app && window.app.incognitoMode;
             const opts = {
                 model: this.modelSelect.value || null,
                 temperature: parseFloat(localStorage.getItem('temperature') || '0.7'),
                 max_tokens: parseInt(localStorage.getItem('max_tokens') || '2048'),
                 incognito: isIncognito || false,
+                images: imagesToSend.map(i => i.base64),
             };
-            if (this.templateSystemPrompt) {
-                opts.system_prompt = this.templateSystemPrompt;
-            }
+            if (this.templateSystemPrompt) opts.system_prompt = this.templateSystemPrompt;
 
-            // Send streaming request
             const response = await window.api.sendStreamingMessage(
-                message,
+                message || 'Describe this image.',
                 isIncognito ? null : this.currentConversationId,
                 opts
             );
 
-            // Handle streaming response
             await this.handleStreamingResponse(response, typingId);
 
         } catch (error) {
@@ -152,7 +200,64 @@ class ChatManager {
         }
     }
 
-    addMessage(role, content, messageId = null) {
+    // ── Image Handling ────────────────────────────────────────────────────
+
+    showDragOverlay() {
+        if (this.dragOverlay) this.dragOverlay.style.display = 'flex';
+        this.chatInputContainer?.classList.add('drag-active');
+    }
+
+    hideDragOverlay() {
+        if (this.dragOverlay) this.dragOverlay.style.display = 'none';
+        this.chatInputContainer?.classList.remove('drag-active');
+    }
+
+    addImageFile(file) {
+        if (!file || !file.type.startsWith('image/')) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const dataUrl = e.target.result;
+            // base64 only (strip data:image/...;base64, prefix for API)
+            const base64 = dataUrl.split(',')[1];
+            this.pendingImages.push({ dataUrl, base64 });
+            this.renderImagePreviews();
+            this.handleInputChange();
+        };
+        reader.readAsDataURL(file);
+    }
+
+    renderImagePreviews() {
+        if (!this.imagePreviewRow) return;
+        if (this.pendingImages.length === 0) {
+            this.imagePreviewRow.style.display = 'none';
+            this.imagePreviewRow.innerHTML = '';
+            return;
+        }
+        this.imagePreviewRow.style.display = 'flex';
+        this.imagePreviewRow.innerHTML = '';
+        this.pendingImages.forEach((img, idx) => {
+            const chip = document.createElement('div');
+            chip.className = 'image-preview-chip';
+            chip.innerHTML = `
+                <img src="${img.dataUrl}" alt="attached">
+                <button class="remove-img-btn" data-idx="${idx}"><i class="fas fa-times"></i></button>`;
+            chip.querySelector('.remove-img-btn').addEventListener('click', () => {
+                this.pendingImages.splice(idx, 1);
+                this.renderImagePreviews();
+                this.handleInputChange();
+            });
+            this.imagePreviewRow.appendChild(chip);
+        });
+    }
+
+    clearPendingImages() {
+        this.pendingImages = [];
+        this.renderImagePreviews();
+    }
+
+    // ── Messages ──────────────────────────────────────────────────────────
+
+    addMessage(role, content, messageId = null, images = []) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${role}`;
         messageDiv.dataset.messageId = messageId || Date.now().toString();
@@ -167,6 +272,20 @@ class ChatManager {
         if (role === 'assistant') {
             textDiv.innerHTML = this.formatMessage(content);
         } else {
+            // Show attached images above text
+            if (images && images.length > 0) {
+                const imgsDiv = document.createElement('div');
+                imgsDiv.className = 'message-images';
+                images.forEach(img => {
+                    const el = document.createElement('img');
+                    el.className = 'message-image';
+                    el.src = img.dataUrl;
+                    el.alt = 'attached image';
+                    el.addEventListener('click', () => window.open(img.dataUrl, '_blank'));
+                    imgsDiv.appendChild(el);
+                });
+                contentDiv.appendChild(imgsDiv);
+            }
             textDiv.textContent = content;
         }
 

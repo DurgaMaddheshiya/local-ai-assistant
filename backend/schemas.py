@@ -72,6 +72,7 @@ class ChatRequest(BaseSchema):
     max_tokens: Optional[int] = Field(None, gt=0, description="Maximum tokens to generate")
     stream: bool = Field(True, description="Enable streaming response")
     incognito: bool = Field(False, description="Incognito mode - do not save to database")
+    images: Optional[List[str]] = Field(None, description="Base64 encoded images for multimodal models")
 
 
 class ChatResponse(BaseSchema):
