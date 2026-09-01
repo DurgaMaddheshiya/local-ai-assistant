@@ -1051,6 +1051,98 @@ body {
     background-color: #b91c1c;
 }
 
+/* Shortcut Recorder */
+.shortcut-recorder-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.shortcut-display {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--background-primary);
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+}
+
+.shortcut-display.recording {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.2);
+    animation: blink-border 0.8s ease infinite alternate;
+}
+
+@keyframes blink-border {
+    from { border-color: var(--primary-color); }
+    to   { border-color: var(--border-color); }
+}
+
+.shortcut-display .key-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.1rem 0.45rem;
+    background: var(--background-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    margin-right: 3px;
+    color: var(--text-primary);
+}
+
+.record-btn {
+    padding: 0.5rem 0.9rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.record-btn:hover { background: var(--primary-hover); }
+
+.record-btn.recording {
+    background: #e74c3c;
+    animation: pulse-btn 0.8s ease infinite alternate;
+}
+
+@keyframes pulse-btn {
+    from { opacity: 1; }
+    to   { opacity: 0.6; }
+}
+
+.reset-shortcut-btn {
+    padding: 0.5rem 0.6rem;
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.8rem;
+}
+
+.reset-shortcut-btn:hover {
+    background: var(--background-tertiary);
+    color: var(--text-primary);
+}
+
+.shortcut-hint {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 0.4rem;
+}
+
 /* About Modal Styles */
 .about-section {
     margin-bottom: 1.5rem;

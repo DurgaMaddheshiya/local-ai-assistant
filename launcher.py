@@ -43,27 +43,49 @@ URL  = f"http://{HOST}:{PORT}"
 class WindowAPI:
     """Methods callable from JS via window.pywebview.api.<method>()"""
 
+    DEFAULT_HOTKEY = 'ctrl+h'
+
     def __init__(self):
-        self._window = None
+        self._window  = None
         self._visible = True
-        self._lock = threading.Lock()
+        self._lock    = threading.Lock()
+        self._current_hotkey = self.DEFAULT_HOTKEY
 
     def set_window(self, win):
         self._window = win
 
     def toggle_visibility(self):
-        """Toggle window hide/show - called from global hotkey thread."""
+        """Toggle window hide/show."""
         if self._window is None:
             return
         with self._lock:
             if self._visible:
                 self._window.hide()
                 self._visible = False
-                log.info("Window hidden  (Ctrl+H)")
+                log.info("Window hidden  (%s)", self._current_hotkey)
             else:
                 self._window.show()
                 self._visible = True
-                log.info("Window shown   (Ctrl+H)")
+                log.info("Window shown   (%s)", self._current_hotkey)
+
+    def set_hotkey(self, shortcut: str):
+        """Called from JS when user saves a new shortcut in Settings.
+        Re-registers the global hotkey with the keyboard library.
+        shortcut format: 'ctrl+h', 'ctrl+shift+h', 'alt+f1', etc.
+        """
+        try:
+            # Remove old hotkey
+            try:
+                keyboard.remove_hotkey(self._current_hotkey)
+            except Exception:
+                pass  # may not exist yet
+
+            # Register new hotkey
+            keyboard.add_hotkey(shortcut, self.toggle_visibility, suppress=True)
+            self._current_hotkey = shortcut
+            log.info("Global hotkey changed to: %s", shortcut)
+        except Exception as e:
+            log.warning("Could not register hotkey '%s': %s", shortcut, e)
 
 
 # -- port helper --------------------------------------------------------------
@@ -127,14 +149,14 @@ def wait_for_backend(timeout: int = 30) -> bool:
 
 # -- global hotkey thread -----------------------------------------------------
 def start_hotkey_listener(api: WindowAPI):
-    """Register Ctrl+H as a global hotkey in a background thread.
-    This works even when the window is hidden / not focused."""
-    def on_ctrl_h():
-        api.toggle_visibility()
-
-    keyboard.add_hotkey('ctrl+h', on_ctrl_h, suppress=True)
-    log.info("Global hotkey Ctrl+H registered")
-    keyboard.wait()   # blocks forever, keeping the listener alive
+    """Register the initial hotkey (default: Ctrl+H) as a global hotkey.
+    JS can change it anytime via api.set_hotkey(). Works even when window is hidden."""
+    try:
+        keyboard.add_hotkey(api._current_hotkey, api.toggle_visibility, suppress=True)
+        log.info("Global hotkey registered: %s", api._current_hotkey)
+    except Exception as e:
+        log.warning("Could not register hotkey: %s", e)
+    keyboard.wait()   # blocks forever, keeping listener alive
 
 
 # -- main ---------------------------------------------------------------------

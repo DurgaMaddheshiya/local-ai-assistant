@@ -9,7 +9,8 @@ class App {
         this.filteredConversations = [];
         this.currentTheme = 'light';
         this.connectionStatus = 'offline';
-        
+        this.isRecording = false;
+
         this.initializeApp();
     }
 
@@ -76,6 +77,13 @@ class App {
         this.clearAllDataBtn = document.getElementById('clear-all-data');
         this.saveSettingsBtn = document.getElementById('save-settings');
         
+        // Shortcut recorder elements
+        this.shortcutDisplay = document.getElementById('shortcut-display');
+        this.shortcutKeysLabel = document.getElementById('shortcut-keys-label');
+        this.recordShortcutBtn = document.getElementById('record-shortcut-btn');
+        this.resetShortcutBtn = document.getElementById('reset-shortcut-btn');
+        this.shortcutHint = document.getElementById('shortcut-hint');
+
         // Sidebar disclaimer
         this.sidebarDisclaimer = document.querySelector('.sidebar-disclaimer');
         
@@ -110,6 +118,10 @@ class App {
         this.clearAllDataBtn.addEventListener('click', () => this.confirmClearAllData());
         this.saveSettingsBtn.addEventListener('click', () => this.saveSettings());
         
+        // Shortcut recorder events
+        this.recordShortcutBtn.addEventListener('click', () => this.startRecording());
+        this.resetShortcutBtn.addEventListener('click', () => this.resetShortcut());
+
         // Confirmation modal events
         this.confirmCancelBtn.addEventListener('click', () => this.closeConfirmModal());
         
@@ -125,11 +137,15 @@ class App {
         
         // Keyboard shortcuts
         document.addEventListener('keydown', (event) => {
-            // Ctrl+H - Hide / show the entire window
-            if (event.ctrlKey && event.key === 'h') {
-                event.preventDefault();
-                if (window.pywebview && window.pywebview.api) {
-                    window.pywebview.api.toggle_visibility();
+            // Dynamic hide/show shortcut - read from localStorage
+            const savedShortcut = localStorage.getItem('hideShortcut') || 'ctrl+h';
+            if (this.matchesShortcut(event, savedShortcut)) {
+                // Don't trigger if recording a new shortcut
+                if (!this.isRecording) {
+                    event.preventDefault();
+                    if (window.pywebview && window.pywebview.api) {
+                        window.pywebview.api.toggle_visibility();
+                    }
                 }
             }
             // Ctrl/Cmd + N for new chat
@@ -281,6 +297,110 @@ class App {
         this.renderConversations();
     }
 
+    // ── Shortcut Recorder ─────────────────────────────────────────────────
+
+    matchesShortcut(event, shortcutStr) {
+        // shortcutStr format: "ctrl+h", "ctrl+shift+h", "alt+h", etc.
+        const parts = shortcutStr.toLowerCase().split('+');
+        const key = parts[parts.length - 1];
+        const needsCtrl  = parts.includes('ctrl');
+        const needsShift = parts.includes('shift');
+        const needsAlt   = parts.includes('alt');
+        const eventKey   = event.key.toLowerCase();
+        return (
+            eventKey === key &&
+            event.ctrlKey  === needsCtrl &&
+            event.shiftKey === needsShift &&
+            event.altKey   === needsAlt
+        );
+    }
+
+    startRecording() {
+        this.isRecording = true;
+        this.recordShortcutBtn.classList.add('recording');
+        this.recordShortcutBtn.innerHTML = '<i class="fas fa-stop"></i> Stop';
+        this.shortcutDisplay.classList.add('recording');
+        this.shortcutKeysLabel.textContent = 'Press any key combo...';
+        this.shortcutHint.textContent = 'Press your desired combination. Esc cancels.';
+
+        this._shortcutHandler = (e) => {
+            // Esc cancels recording without saving
+            if (e.key === 'Escape') {
+                this.stopRecording(null);
+                return;
+            }
+            // Ignore lone modifier keys
+            if (['Control','Shift','Alt','Meta'].includes(e.key)) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            const parts = [];
+            if (e.ctrlKey)  parts.push('ctrl');
+            if (e.shiftKey) parts.push('shift');
+            if (e.altKey)   parts.push('alt');
+            parts.push(e.key.toLowerCase());
+
+            const shortcut = parts.join('+');
+            this.stopRecording(shortcut);
+        };
+
+        document.addEventListener('keydown', this._shortcutHandler, { capture: true });
+    }
+
+    stopRecording(shortcut) {
+        this.isRecording = false;
+        this.recordShortcutBtn.classList.remove('recording');
+        this.recordShortcutBtn.innerHTML = '<i class="fas fa-circle"></i> Record';
+        this.shortcutDisplay.classList.remove('recording');
+        document.removeEventListener('keydown', this._shortcutHandler, { capture: true });
+
+        if (shortcut) {
+            this.applyShortcut(shortcut);
+        } else {
+            // Cancelled - restore current
+            const current = localStorage.getItem('hideShortcut') || 'ctrl+h';
+            this.renderShortcutBadges(current);
+            this.shortcutHint.textContent = 'Click Record, then press your desired key combination.';
+        }
+    }
+
+    applyShortcut(shortcut) {
+        localStorage.setItem('hideShortcut', shortcut);
+        this.renderShortcutBadges(shortcut);
+        this.shortcutHint.textContent = 'Shortcut saved!';
+        setTimeout(() => {
+            this.shortcutHint.textContent = 'Click Record, then press your desired key combination.';
+        }, 2000);
+        // Tell Python to re-register the global hotkey
+        if (window.pywebview && window.pywebview.api) {
+            window.pywebview.api.set_hotkey(shortcut);
+        }
+    }
+
+    resetShortcut() {
+        this.applyShortcut('ctrl+h');
+    }
+
+    renderShortcutBadges(shortcut) {
+        const parts = shortcut.split('+');
+        const html = parts.map(p => {
+            const label = p === 'ctrl' ? 'Ctrl'
+                        : p === 'shift' ? 'Shift'
+                        : p === 'alt' ? 'Alt'
+                        : p.toUpperCase();
+            return `<span class="key-badge">${label}</span>`;
+        }).join('<span style="margin:0 2px;color:var(--text-muted)">+</span>');
+        this.shortcutKeysLabel.innerHTML = html;
+    }
+
+    loadShortcutDisplay() {
+        const shortcut = localStorage.getItem('hideShortcut') || 'ctrl+h';
+        this.renderShortcutBadges(shortcut);
+    }
+
+    // ── Sidebar Toggle ─────────────────────────────────────────────────────
+
     // Sidebar toggle
     toggleSidebar() {
         const isCollapsed = this.sidebar.classList.toggle('collapsed');
@@ -356,6 +476,7 @@ class App {
         this.settingsModal.style.display = 'flex';
         await this.loadSettings();
         await this.updateSystemStatusInSettings();
+        this.loadShortcutDisplay();
     }
 
     closeSettings() {
