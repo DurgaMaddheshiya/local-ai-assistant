@@ -125,6 +125,13 @@ class App {
         
         // Keyboard shortcuts
         document.addEventListener('keydown', (event) => {
+            // Ctrl+H - Hide / show the entire window
+            if (event.ctrlKey && event.key === 'h') {
+                event.preventDefault();
+                if (window.pywebview && window.pywebview.api) {
+                    window.pywebview.api.toggle_visibility();
+                }
+            }
             // Ctrl/Cmd + N for new chat
             if ((event.ctrlKey || event.metaKey) && event.key === 'n') {
                 event.preventDefault();

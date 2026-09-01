@@ -12,20 +12,45 @@ import logging
 import uvicorn
 import webview
 
-# â”€â”€ logging â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# -- logging ------------------------------------------------------------------
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 log = logging.getLogger(__name__)
 
-# â”€â”€ config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# -- config -------------------------------------------------------------------
 HOST = "127.0.0.1"
 PORT = 8000
 URL  = f"http://{HOST}:{PORT}"
 
 
-# â”€â”€ port helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# -- Python API exposed to JS -------------------------------------------------
+class WindowAPI:
+    """Methods callable from JS via window.pywebview.api.<method>()"""
+
+    def __init__(self):
+        self._window = None
+        self._visible = True
+
+    def set_window(self, win):
+        self._window = win
+
+    def toggle_visibility(self):
+        """Ctrl+H handler - hide or show the window."""
+        if self._window is None:
+            return
+        if self._visible:
+            self._window.hide()
+            self._visible = False
+            log.info("Window hidden  (Ctrl+H)")
+        else:
+            self._window.show()
+            self._visible = True
+            log.info("Window shown   (Ctrl+H)")
+
+
+# -- port helper --------------------------------------------------------------
 def free_port(port: int):
     """Kill whatever process is using the given port (Windows)."""
     import subprocess
@@ -53,12 +78,11 @@ def is_port_in_use(port: int) -> bool:
         return s.connect_ex((HOST, port)) == 0
 
 
-# â”€â”€ backend thread â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# -- backend thread -----------------------------------------------------------
 def start_backend():
     """Run FastAPI/uvicorn in a background daemon thread."""
-    # Free port if already occupied
     if is_port_in_use(PORT):
-        log.info("Port %s in use â€” freeing it...", PORT)
+        log.info("Port %s in use - freeing it...", PORT)
         free_port(PORT)
         time.sleep(1)
 
@@ -85,7 +109,7 @@ def wait_for_backend(timeout: int = 30) -> bool:
     return False
 
 
-# â”€â”€ main â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# -- main ---------------------------------------------------------------------
 def main():
     # 1. Start backend in background thread
     t = threading.Thread(target=start_backend, daemon=True)
@@ -98,7 +122,10 @@ def main():
         sys.exit(1)
     log.info("Backend ready!")
 
-    # 3. Open PyWebView desktop window
+    # 3. Create the API instance
+    api = WindowAPI()
+
+    # 4. Open PyWebView desktop window
     window = webview.create_window(
         title="Durgara",
         url=URL,
@@ -107,7 +134,11 @@ def main():
         min_size=(800, 600),
         resizable=True,
         text_select=True,
+        js_api=api,
     )
+
+    # Give API a reference to the window
+    api.set_window(window)
 
     log.info("Opening desktop window at %s", URL)
     webview.start(debug=False)
@@ -120,4 +151,3 @@ if __name__ == "__main__":
     # Must run from project root so 'backend' package is importable
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     main()
-
