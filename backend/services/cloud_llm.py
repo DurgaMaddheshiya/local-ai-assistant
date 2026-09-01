@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 # Model prefix mapping
 OPENAI_MODELS  = ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo"]
-GEMINI_MODELS  = ["gemini-2.0-flash-exp", "gemini-1.5-pro", "gemini-1.5-flash", "gemini-1.5-flash-8b"]
+GEMINI_MODELS  = ["gemini-1.5-flash-latest", "gemini-1.5-pro-latest", "gemini-1.5-flash-8b-latest"]
 CLAUDE_MODELS  = ["claude-3-5-sonnet", "claude-3-5-haiku", "claude-3-opus", "claude-3-sonnet", "claude-3-haiku"]
 
 
@@ -105,7 +105,8 @@ class CloudLLMService:
         if system_text:
             payload["systemInstruction"] = {"parts": [{"text": system_text}]}
 
-        url = (f"https://generativelanguage.googleapis.com/v1beta/models/"
+        # Use v1 API instead of v1beta
+        url = (f"https://generativelanguage.googleapis.com/v1/models/"
                f"{model}:streamGenerateContent?alt=sse&key={self.gemini_key}")
         try:
             async with httpx.AsyncClient(timeout=120) as client:
@@ -114,21 +115,24 @@ class CloudLLMService:
                         body = await resp.aread()
                         yield {"error": f"Gemini error {resp.status_code}: {body.decode()}", "done": True}
                         return
+                    buffer = ""
                     async for line in resp.aiter_lines():
                         if line.startswith("data: "):
                             try:
                                 chunk = json.loads(line[6:])
-                                text = (chunk.get("candidates", [{}])[0]
-                                        .get("content", {})
-                                        .get("parts", [{}])[0]
-                                        .get("text", ""))
-                                done = (chunk.get("candidates", [{}])[0]
-                                        .get("finishReason", "") != "")
-                                if text:
-                                    yield {"content": text, "done": done, "model": model}
-                                if done:
-                                    return
-                            except Exception:
+                                candidates = chunk.get("candidates", [])
+                                if candidates:
+                                    content = candidates[0].get("content", {})
+                                    parts = content.get("parts", [])
+                                    if parts and "text" in parts[0]:
+                                        text = parts[0]["text"]
+                                        yield {"content": text, "done": False, "model": model}
+                                    finish_reason = candidates[0].get("finishReason")
+                                    if finish_reason and finish_reason != "STOP":
+                                        yield {"content": "", "done": True, "model": model}
+                                        return
+                            except Exception as e:
+                                logger.error(f"Gemini chunk parse error: {e}")
                                 continue
             yield {"content": "", "done": True, "model": model}
         except Exception as e:
