@@ -1,6 +1,6 @@
 /**
  * Neural Network Animation
- * Animated nodes with connecting lines
+ * Animated nodes with connecting lines - syncs with user accent color
  */
 
 class NeuralNetwork {
@@ -14,17 +14,56 @@ class NeuralNetwork {
         this.maxDistance = 150;
         this.nodeSpeed = 0.3;
         
-        this.colors = {
-            node: 'rgba(245, 158, 11, 0.8)', // Amber
-            line: 'rgba(245, 158, 11, 0.2)',
-            nodeGlow: 'rgba(245, 158, 11, 0.4)'
-        };
+        // Get accent color from CSS variable
+        this.updateColors();
         
         this.init();
         this.animate();
         
         // Resize handler
         window.addEventListener('resize', () => this.init());
+        
+        // Listen for color changes
+        this.observeColorChanges();
+    }
+    
+    updateColors() {
+        // Get current accent color from CSS
+        const primaryColor = getComputedStyle(document.documentElement)
+            .getPropertyValue('--primary-color').trim();
+        
+        // Convert hex to rgba
+        const rgba = this.hexToRgba(primaryColor);
+        
+        this.colors = {
+            node: `rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, 0.6)`,
+            line: `rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, 0.1)`,
+            nodeGlow: `rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, 0.2)`
+        };
+    }
+    
+    hexToRgba(hex) {
+        // Remove # if present
+        hex = hex.replace('#', '');
+        
+        // Parse hex
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+        
+        return { r, g, b };
+    }
+    
+    observeColorChanges() {
+        // Watch for style changes on root element
+        const observer = new MutationObserver(() => {
+            this.updateColors();
+        });
+        
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['style']
+        });
     }
     
     init() {
@@ -60,11 +99,14 @@ class NeuralNetwork {
     }
     
     drawLine(node1, node2, distance) {
-        const opacity = 1 - (distance / this.maxDistance);
+        const opacity = (1 - (distance / this.maxDistance)) * 0.15;
+        const rgba = this.hexToRgba(getComputedStyle(document.documentElement)
+            .getPropertyValue('--primary-color').trim());
+        
         this.ctx.beginPath();
         this.ctx.moveTo(node1.x, node1.y);
         this.ctx.lineTo(node2.x, node2.y);
-        this.ctx.strokeStyle = `rgba(245, 158, 11, ${opacity * 0.2})`;
+        this.ctx.strokeStyle = `rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, ${opacity})`;
         this.ctx.lineWidth = 0.5;
         this.ctx.stroke();
     }
