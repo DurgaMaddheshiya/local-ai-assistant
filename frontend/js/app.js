@@ -424,7 +424,7 @@ class App {
     }
 
     loadAccentColor() {
-        const saved = localStorage.getItem('accentColor') || '#e50914';
+        const saved = localStorage.getItem('accentColor') || '#f59e0b'; // Amber/Orange default
         this.applyAccentColor(saved);
     }
 
