@@ -114,81 +114,61 @@ class App {
 
     bindEvents() {
         // Sidebar events
-        this.newChatBtn.addEventListener('click', () => this.startNewChat());
-        this.searchInput.addEventListener('input', () => this.handleSearch());
-        this.clearSearchBtn.addEventListener('click', () => this.clearSearch());
-        this.settingsBtn.addEventListener('click', () => this.openSettings());
-        this.startChattingBtn.addEventListener('click', () => this.startNewChat());
-        if (this.sidebarToggleBtn) {
-            this.sidebarToggleBtn.addEventListener('click', () => this.toggleSidebar());
-        }
-        
+        this.newChatBtn?.addEventListener('click', () => this.startNewChat());
+        this.searchInput?.addEventListener('input', () => this.handleSearch());
+        this.clearSearchBtn?.addEventListener('click', () => this.clearSearch());
+        this.settingsBtn?.addEventListener('click', () => this.openSettings());
+        this.startChattingBtn?.addEventListener('click', () => this.startNewChat());
+        this.sidebarToggleBtn?.addEventListener('click', () => this.toggleSidebar());
+
         // Settings modal events
-        this.closeSettingsBtn.addEventListener('click', () => this.closeSettings());
-        this.themeSelect.addEventListener('change', () => this.handleThemeChange());
-        this.appOpacitySlider.addEventListener('input', () => this.updateAppOpacity());
-        this.disclaimerOpacitySlider.addEventListener('input', () => this.updateDisclaimerOpacity());
-        this.temperatureSlider.addEventListener('input', () => this.updateTemperatureValue());
-        this.clearAllDataBtn.addEventListener('click', () => this.confirmClearAllData());
-        this.saveSettingsBtn.addEventListener('click', () => this.saveSettings());
-        
+        this.closeSettingsBtn?.addEventListener('click', () => this.closeSettings());
+        this.themeSelect?.addEventListener('change', () => this.handleThemeChange());
+        this.appOpacitySlider?.addEventListener('input', () => this.updateAppOpacity());
+        this.disclaimerOpacitySlider?.addEventListener('input', () => this.updateDisclaimerOpacity());
+        this.temperatureSlider?.addEventListener('input', () => this.updateTemperatureValue());
+        this.clearAllDataBtn?.addEventListener('click', () => this.confirmClearAllData());
+        this.saveSettingsBtn?.addEventListener('click', () => this.saveSettings());
+
         // Incognito events
-        if (this.incognitoBtn) {
-            this.incognitoBtn.addEventListener('click', () => this.toggleIncognito());
-        }
-        if (this.exitIncognitoBtn) {
-            this.exitIncognitoBtn.addEventListener('click', () => this.toggleIncognito(false));
-        }
+        this.incognitoBtn?.addEventListener('click', () => this.toggleIncognito());
+        this.exitIncognitoBtn?.addEventListener('click', () => this.toggleIncognito(false));
 
         // Templates events
-        if (this.templatesBtn) {
-            this.templatesBtn.addEventListener('click', () => this.openTemplates());
-        }
-        if (this.closeTemplatesBtn) {
-            this.closeTemplatesBtn.addEventListener('click', () => this.closeTemplates());
-        }
+        this.templatesBtn?.addEventListener('click', () => this.openTemplates());
+        this.closeTemplatesBtn?.addEventListener('click', () => this.closeTemplates());
         document.querySelectorAll('.template-card').forEach(card => {
             card.addEventListener('click', () => this.applyTemplate(card.dataset.prompt));
         });
-        window.addEventListener('click', (e) => {
-            if (e.target === this.templatesModal) this.closeTemplates();
-        });
 
         // Accent color events
-        if (this.accentColorPicker) {
-            this.accentColorPicker.addEventListener('input', (e) => this.applyAccentColor(e.target.value));
-        }
+        this.accentColorPicker?.addEventListener('input', (e) => this.applyAccentColor(e.target.value));
         this.accentPresets.forEach(btn => {
             btn.addEventListener('click', () => {
-                const color = btn.dataset.color;
-                this.applyAccentColor(color);
-                if (this.accentColorPicker) this.accentColorPicker.value = color;
+                this.applyAccentColor(btn.dataset.color);
+                if (this.accentColorPicker) this.accentColorPicker.value = btn.dataset.color;
             });
         });
 
         // Shortcut recorder events
-        this.recordShortcutBtn.addEventListener('click', () => this.startRecording());
-        this.resetShortcutBtn.addEventListener('click', () => this.resetShortcut());
+        this.recordShortcutBtn?.addEventListener('click', () => this.startRecording());
+        this.resetShortcutBtn?.addEventListener('click', () => this.resetShortcut());
 
         // Confirmation modal events
-        this.confirmCancelBtn.addEventListener('click', () => this.closeConfirmModal());
-        
+        this.confirmCancelBtn?.addEventListener('click', () => this.closeConfirmModal());
+
         // Click outside modals to close
         window.addEventListener('click', (event) => {
-            if (event.target === this.settingsModal) {
-                this.closeSettings();
-            }
-            if (event.target === this.confirmModal) {
-                this.closeConfirmModal();
-            }
+            if (event.target === this.settingsModal) this.closeSettings();
+            if (event.target === this.confirmModal) this.closeConfirmModal();
+            if (event.target === this.templatesModal) this.closeTemplates();
         });
-        
+
         // Keyboard shortcuts
         document.addEventListener('keydown', (event) => {
-            // Dynamic hide/show shortcut - read from localStorage
+            // Dynamic hide/show shortcut
             const savedShortcut = localStorage.getItem('hideShortcut') || 'ctrl+h';
             if (this.matchesShortcut(event, savedShortcut)) {
-                // Don't trigger if recording a new shortcut
                 if (!this.isRecording) {
                     event.preventDefault();
                     if (window.pywebview && window.pywebview.api) {
@@ -205,6 +185,7 @@ class App {
             if (event.key === 'Escape') {
                 this.closeSettings();
                 this.closeConfirmModal();
+                this.closeTemplates();
             }
         });
     }
