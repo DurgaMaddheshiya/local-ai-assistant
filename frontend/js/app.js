@@ -132,6 +132,9 @@ class App {
         this.startChattingBtn?.addEventListener('click', () => this.startNewChat());
         this.sidebarToggleBtn?.addEventListener('click', () => this.toggleSidebar());
 
+        // Home button - go to welcome screen
+        document.getElementById('home-btn')?.addEventListener('click', () => this.goHome());
+
         // Settings modal events
         this.closeSettingsBtn?.addEventListener('click', () => this.closeSettings());
         this.themeSelect?.addEventListener('change', () => this.handleThemeChange());
@@ -722,9 +725,23 @@ class App {
         }
     }
 
+    goHome() {
+        // Hide chat interface, show welcome screen
+        const chatInterface = document.getElementById('chat-interface');
+        const welcomeScreen = document.getElementById('welcome-screen');
+        
+        if (chatInterface) chatInterface.style.display = 'none';
+        if (welcomeScreen) welcomeScreen.style.display = 'flex';
+        
+        // Reset current conversation
+        this.currentConversationId = null;
+        
+        // Update page title
+        document.title = 'Durgara';
+    }
+
     // Zoom functionality
-    adjustZoom(change) {
-        const current = parseInt(localStorage.getItem('zoomLevel') || '100');
+    adjustZoom(change) {        const current = parseInt(localStorage.getItem('zoomLevel') || '100');
         let newZoom = current + change;
         
         // Limit zoom between 50% and 150%
