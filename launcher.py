@@ -150,34 +150,46 @@ def wait_for_backend(timeout: int = 30) -> bool:
 # -- global hotkey thread -----------------------------------------------------
 def apply_screenshot_protection(window_title: str = "Durgara"):
     """
-    Apply WDA_EXCLUDEFROMCAPTURE so the window appears black/blank
-    in screenshots, screen recording, and screen share tools.
-    Uses Windows SetWindowDisplayAffinity API (same as Netflix/banking apps).
+    Make the window invisible in screenshots using WDA_EXCLUDEFROMCAPTURE.
+    When someone takes a screenshot, the window disappears from capture
+    and whatever is behind it (desktop/other apps) shows instead.
     """
     try:
         import ctypes
-        import ctypes.wintypes
 
         user32 = ctypes.windll.user32
 
-        # Find our window handle by title
-        hwnd = user32.FindWindowW(None, window_title)
+        # Try multiple times as window may not be ready immediately
+        for _ in range(5):
+            hwnd = user32.FindWindowW(None, window_title)
+            if hwnd:
+                break
+            time.sleep(0.5)
+
         if not hwnd:
             log.warning("Screenshot protection: window handle not found.")
             return
 
         # WDA_EXCLUDEFROMCAPTURE = 0x00000011
-        # Makes window appear black in any screen capture tool
+        # Window becomes completely invisible in any screen capture.
+        # Whatever is BEHIND the window (desktop, other apps) will show instead.
+        # This is exactly what Netflix, banking apps use.
         WDA_EXCLUDEFROMCAPTURE = 0x00000011
         result = user32.SetWindowDisplayAffinity(hwnd, WDA_EXCLUDEFROMCAPTURE)
 
         if result:
-            log.info("Screenshot protection enabled (WDA_EXCLUDEFROMCAPTURE)")
+            log.info("Screenshot protection enabled - window invisible in captures")
         else:
-            log.warning("Screenshot protection: SetWindowDisplayAffinity failed.")
+            # Fallback: try WDA_MONITOR (older Windows versions)
+            WDA_MONITOR = 0x00000001
+            result = user32.SetWindowDisplayAffinity(hwnd, WDA_MONITOR)
+            if result:
+                log.info("Screenshot protection enabled (WDA_MONITOR fallback)")
+            else:
+                log.warning("Screenshot protection: SetWindowDisplayAffinity failed (error %s)",
+                            ctypes.windll.kernel32.GetLastError())
     except Exception as e:
         log.warning("Screenshot protection not applied: %s", e)
-
 
 
     """Register the initial hotkey (default: Ctrl+H) as a global hotkey.
