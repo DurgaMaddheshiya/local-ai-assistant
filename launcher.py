@@ -8,6 +8,7 @@ import time
 import sys
 import os
 import logging
+import ctypes
 
 import uvicorn
 import webview
@@ -17,7 +18,6 @@ import keyboard  # global hotkey support
 def hide_console():
     """Hide the CMD/console window if running on Windows."""
     try:
-        import ctypes
         hwnd = ctypes.windll.kernel32.GetConsoleWindow()
         if hwnd:
             ctypes.windll.user32.ShowWindow(hwnd, 0)  # SW_HIDE = 0
@@ -153,48 +153,66 @@ def start_hotkey_listener(api: WindowAPI):
 
 
 # -- screenshot protection ----------------------------------------------------
-def apply_screenshot_protection(window_title: str = "Durgara"):
+def apply_screenshot_protection():
     """
-    Make window invisible in screenshots using WDA_EXCLUDEFROMCAPTURE.
-    When screenshot is taken, window disappears from capture and
-    whatever is behind it (desktop/other apps) shows instead.
-    Same technique used by Netflix, banking apps, password managers.
+    Make window INVISIBLE in screenshots while staying VISIBLE on screen.
+
+    WDA_EXCLUDEFROMCAPTURE excludes window from DWM capture layer:
+    - Screen: Window shows normally, user sees it fine
+    - Screenshot/Recording: Window is excluded, background app shows instead
+
+    This is exactly what Netflix, banking apps, password managers use.
     """
     try:
-        import ctypes
         user32 = ctypes.windll.user32
+        WDA_EXCLUDEFROMCAPTURE = 0x00000011
 
-        # Retry loop - window may not be ready immediately
-        hwnd = None
-        for _ in range(10):
-            hwnd = user32.FindWindowW(None, window_title)
+        # Enumerate ALL top-level windows, find Durgara
+        found_hwnds = []
+
+        EnumWindowsProc = ctypes.WINFUNCTYPE(
+            ctypes.c_bool,
+            ctypes.POINTER(ctypes.c_int),
+            ctypes.POINTER(ctypes.c_int)
+        )
+
+        def enum_callback(hwnd, lparam):
+            length = user32.GetWindowTextLengthW(hwnd)
+            if length > 0:
+                buf = ctypes.create_unicode_buffer(length + 1)
+                user32.GetWindowTextW(hwnd, buf, length + 1)
+                title = buf.value
+                if "durgara" in title.lower() or "local ai" in title.lower():
+                    found_hwnds.append(hwnd)
+            return True
+
+        cb = EnumWindowsProc(enum_callback)
+        user32.EnumWindows(cb, 0)
+
+        # Fallback: direct FindWindow
+        if not found_hwnds:
+            hwnd = user32.FindWindowW(None, "Durgara")
             if hwnd:
-                break
-            time.sleep(0.5)
+                found_hwnds.append(hwnd)
 
-        if not hwnd:
-            log.warning("Screenshot protection: window handle not found.")
+        if not found_hwnds:
+            log.warning("Screenshot protection: Durgara window not found")
             return
 
-        # WDA_EXCLUDEFROMCAPTURE = 0x11
-        # Window is excluded from DWM capture layer.
-        # Screenshot shows whatever is physically behind the window.
-        WDA_EXCLUDEFROMCAPTURE = 0x00000011
-        result = user32.SetWindowDisplayAffinity(hwnd, WDA_EXCLUDEFROMCAPTURE)
-
-        if result:
-            log.info("Screenshot protection enabled - app invisible in captures")
-        else:
-            # Fallback for older Windows
-            WDA_MONITOR = 0x00000001
-            result = user32.SetWindowDisplayAffinity(hwnd, WDA_MONITOR)
-            if result:
-                log.info("Screenshot protection enabled (WDA_MONITOR fallback)")
+        for hwnd in found_hwnds:
+            ok = user32.SetWindowDisplayAffinity(hwnd, WDA_EXCLUDEFROMCAPTURE)
+            if ok:
+                log.info(
+                    "Screenshot protection ON: hwnd=%s | "
+                    "Window VISIBLE on screen, INVISIBLE in screenshots. "
+                    "Background apps show in screenshots instead.", hwnd
+                )
             else:
                 err = ctypes.windll.kernel32.GetLastError()
-                log.warning("Screenshot protection failed (error %s)", err)
+                log.warning("SetWindowDisplayAffinity failed: hwnd=%s err=%s", hwnd, err)
+
     except Exception as e:
-        log.warning("Screenshot protection not applied: %s", e)
+        log.warning("Screenshot protection error: %s", e)
 
 
 # -- main ---------------------------------------------------------------------
@@ -238,8 +256,8 @@ def main():
 
     # 6. Apply screenshot protection after window is fully loaded
     def on_loaded():
-        time.sleep(1.5)  # wait for window to fully render
-        apply_screenshot_protection("Durgara")
+        time.sleep(2)  # wait for window to fully render and be visible
+        apply_screenshot_protection()
 
     protect_thread = threading.Thread(target=on_loaded, daemon=True)
     protect_thread.start()
