@@ -59,10 +59,8 @@ def get_stealth_headers():
 
 
 async def stealth_delay():
-    """Random delay to avoid pattern detection"""
-    base_delay = float(os.environ.get('STEALTH_DELAY', '0.2'))
-    actual_delay = base_delay + random.uniform(0.05, 0.3)
-    await asyncio.sleep(actual_delay)
+    """Minimal delay - kept for compatibility but no actual delay"""
+    pass  # Removed delay - was causing slow model connections
 
 
 class CloudLLMService:

@@ -629,21 +629,48 @@ class ChatManager {
     async loadModels() {
         try {
             const response = await window.api.getModels();
-            const currentModel = await window.api.getCurrentModel();
+            
+            // getCurrentModel separately - don't block if it fails
+            let currentModel = null;
+            try {
+                currentModel = await window.api.getCurrentModel();
+            } catch (e) {
+                console.warn('Could not get current model:', e);
+            }
             
             this.modelSelect.innerHTML = '';
             
             if (response.models && response.models.length > 0) {
-                for (const model of response.models) {
-                    const option = document.createElement('option');
-                    option.value = model.name;
-                    option.textContent = `${model.name} (${model.size || 'Unknown size'})`;
-                    
-                    if (model.name === currentModel.current_model) {
-                        option.selected = true;
+                // Group models: local first, then cloud
+                const localModels = response.models.filter(m => !m.details?.cloud);
+                const cloudModels = response.models.filter(m => m.details?.cloud);
+
+                // Add local models with group label
+                if (localModels.length > 0) {
+                    const localGroup = document.createElement('optgroup');
+                    localGroup.label = '🖥️ Local (Ollama)';
+                    for (const model of localModels) {
+                        const option = document.createElement('option');
+                        option.value = model.name;
+                        option.textContent = model.name;
+                        if (model.name === currentModel?.current_model) option.selected = true;
+                        localGroup.appendChild(option);
                     }
-                    
-                    this.modelSelect.appendChild(option);
+                    this.modelSelect.appendChild(localGroup);
+                }
+
+                // Add cloud models with group label
+                if (cloudModels.length > 0) {
+                    const cloudGroup = document.createElement('optgroup');
+                    cloudGroup.label = '☁️ Cloud (API Key Required)';
+                    for (const model of cloudModels) {
+                        const option = document.createElement('option');
+                        option.value = model.name;
+                        option.textContent = model.name;
+                        if (model.name === currentModel?.current_model) option.selected = true;
+                        cloudGroup.appendChild(option);
+                    }
+                    this.modelSelect.appendChild(cloudGroup);
                 }
             } else {
                 const option = document.createElement('option');
@@ -653,7 +680,7 @@ class ChatManager {
             }
         } catch (error) {
             console.error('Error loading models:', error);
-            this.modelSelect.innerHTML = '<option value="">Error loading models</option>';
+            this.modelSelect.innerHTML = '<option value="">Error loading models - check Ollama</option>';
         }
     }
 

