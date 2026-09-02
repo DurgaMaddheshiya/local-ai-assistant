@@ -69,18 +69,12 @@ class WindowAPI:
                 log.info("Window shown   (%s)", self._current_hotkey)
 
     def set_hotkey(self, shortcut: str):
-        """Called from JS when user saves a new shortcut in Settings.
-        Re-registers the global hotkey with the keyboard library.
-        shortcut format: 'ctrl+h', 'ctrl+shift+h', 'alt+f1', etc.
-        """
+        """Called from JS when user saves a new shortcut in Settings."""
         try:
-            # Remove old hotkey
             try:
                 keyboard.remove_hotkey(self._current_hotkey)
             except Exception:
-                pass  # may not exist yet
-
-            # Register new hotkey
+                pass
             keyboard.add_hotkey(shortcut, self.toggle_visibility, suppress=True)
             self._current_hotkey = shortcut
             log.info("Global hotkey changed to: %s", shortcut)
@@ -148,19 +142,31 @@ def wait_for_backend(timeout: int = 30) -> bool:
 
 
 # -- global hotkey thread -----------------------------------------------------
+def start_hotkey_listener(api: WindowAPI):
+    """Register the initial hotkey (default: Ctrl+H) as a global hotkey."""
+    try:
+        keyboard.add_hotkey(api._current_hotkey, api.toggle_visibility, suppress=True)
+        log.info("Global hotkey registered: %s", api._current_hotkey)
+    except Exception as e:
+        log.warning("Could not register hotkey: %s", e)
+    keyboard.wait()   # blocks forever, keeping listener alive
+
+
+# -- screenshot protection ----------------------------------------------------
 def apply_screenshot_protection(window_title: str = "Durgara"):
     """
-    Make the window invisible in screenshots using WDA_EXCLUDEFROMCAPTURE.
-    When someone takes a screenshot, the window disappears from capture
-    and whatever is behind it (desktop/other apps) shows instead.
+    Make window invisible in screenshots using WDA_EXCLUDEFROMCAPTURE.
+    When screenshot is taken, window disappears from capture and
+    whatever is behind it (desktop/other apps) shows instead.
+    Same technique used by Netflix, banking apps, password managers.
     """
     try:
         import ctypes
-
         user32 = ctypes.windll.user32
 
-        # Try multiple times as window may not be ready immediately
-        for _ in range(5):
+        # Retry loop - window may not be ready immediately
+        hwnd = None
+        for _ in range(10):
             hwnd = user32.FindWindowW(None, window_title)
             if hwnd:
                 break
@@ -170,36 +176,25 @@ def apply_screenshot_protection(window_title: str = "Durgara"):
             log.warning("Screenshot protection: window handle not found.")
             return
 
-        # WDA_EXCLUDEFROMCAPTURE = 0x00000011
-        # Window becomes completely invisible in any screen capture.
-        # Whatever is BEHIND the window (desktop, other apps) will show instead.
-        # This is exactly what Netflix, banking apps use.
+        # WDA_EXCLUDEFROMCAPTURE = 0x11
+        # Window is excluded from DWM capture layer.
+        # Screenshot shows whatever is physically behind the window.
         WDA_EXCLUDEFROMCAPTURE = 0x00000011
         result = user32.SetWindowDisplayAffinity(hwnd, WDA_EXCLUDEFROMCAPTURE)
 
         if result:
-            log.info("Screenshot protection enabled - window invisible in captures")
+            log.info("Screenshot protection enabled - app invisible in captures")
         else:
-            # Fallback: try WDA_MONITOR (older Windows versions)
+            # Fallback for older Windows
             WDA_MONITOR = 0x00000001
             result = user32.SetWindowDisplayAffinity(hwnd, WDA_MONITOR)
             if result:
                 log.info("Screenshot protection enabled (WDA_MONITOR fallback)")
             else:
-                log.warning("Screenshot protection: SetWindowDisplayAffinity failed (error %s)",
-                            ctypes.windll.kernel32.GetLastError())
+                err = ctypes.windll.kernel32.GetLastError()
+                log.warning("Screenshot protection failed (error %s)", err)
     except Exception as e:
         log.warning("Screenshot protection not applied: %s", e)
-
-
-    """Register the initial hotkey (default: Ctrl+H) as a global hotkey.
-    JS can change it anytime via api.set_hotkey(). Works even when window is hidden."""
-    try:
-        keyboard.add_hotkey(api._current_hotkey, api.toggle_visibility, suppress=True)
-        log.info("Global hotkey registered: %s", api._current_hotkey)
-    except Exception as e:
-        log.warning("Could not register hotkey: %s", e)
-    keyboard.wait()   # blocks forever, keeping listener alive
 
 
 # -- main ---------------------------------------------------------------------
@@ -243,7 +238,7 @@ def main():
 
     # 6. Apply screenshot protection after window is fully loaded
     def on_loaded():
-        time.sleep(1)  # wait for window to fully render
+        time.sleep(1.5)  # wait for window to fully render
         apply_screenshot_protection("Durgara")
 
     protect_thread = threading.Thread(target=on_loaded, daemon=True)
@@ -257,6 +252,5 @@ def main():
 
 
 if __name__ == "__main__":
-    # Must run from project root so 'backend' package is importable
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     main()
