@@ -86,7 +86,8 @@ class CloudLLMService:
 
     async def _stream_gemini(
         self, messages: List[Dict], model: str,
-        temperature: float, max_tokens: int
+        temperature: float, max_tokens: int,
+        images: Optional[List[str]] = None
     ) -> AsyncGenerator[Dict, None]:
         # Convert messages to Gemini format
         contents = []
@@ -95,7 +96,17 @@ class CloudLLMService:
             if m["role"] == "system":
                 system_text = m["content"]
             elif m["role"] == "user":
-                contents.append({"role": "user", "parts": [{"text": m["content"]}]})
+                # If this is the last user message and we have images, add them
+                parts = [{"text": m["content"]}]
+                if images and m == messages[-1]:  # Only add images to latest user message
+                    for img_b64 in images:
+                        parts.append({
+                            "inline_data": {
+                                "mime_type": "image/jpeg",
+                                "data": img_b64
+                            }
+                        })
+                contents.append({"role": "user", "parts": parts})
             elif m["role"] == "assistant":
                 contents.append({"role": "model", "parts": [{"text": m["content"]}]})
 
@@ -153,7 +164,8 @@ class CloudLLMService:
 
     async def _stream_claude(
         self, messages: List[Dict], model: str,
-        temperature: float, max_tokens: int
+        temperature: float, max_tokens: int,
+        images: Optional[List[str]] = None
     ) -> AsyncGenerator[Dict, None]:
         system_text = ""
         api_messages = []
@@ -161,7 +173,21 @@ class CloudLLMService:
             if m["role"] == "system":
                 system_text = m["content"]
             else:
-                api_messages.append({"role": m["role"], "content": m["content"]})
+                # If this is the last user message and we have images, format with images
+                if m["role"] == "user" and images and m == messages[-1]:
+                    content_blocks = [{"type": "text", "text": m["content"]}]
+                    for img_b64 in images:
+                        content_blocks.append({
+                            "type": "image",
+                            "source": {
+                                "type": "base64",
+                                "media_type": "image/jpeg",
+                                "data": img_b64
+                            }
+                        })
+                    api_messages.append({"role": "user", "content": content_blocks})
+                else:
+                    api_messages.append({"role": m["role"], "content": m["content"]})
 
         headers = {
             "x-api-key": self.claude_key,
@@ -240,14 +266,14 @@ class CloudLLMService:
             if not self.gemini_key:
                 yield {"error": "Gemini API key not set. Add it in Settings → API Keys.", "done": True}
                 return
-            async for chunk in self._stream_gemini(messages, model, temperature, max_tokens):
+            async for chunk in self._stream_gemini(messages, model, temperature, max_tokens, images):
                 yield chunk
 
         elif provider == "claude":
             if not self.claude_key:
                 yield {"error": "Claude API key not set. Add it in Settings → API Keys.", "done": True}
                 return
-            async for chunk in self._stream_claude(messages, model, temperature, max_tokens):
+            async for chunk in self._stream_claude(messages, model, temperature, max_tokens, images):
                 yield chunk
 
         else:

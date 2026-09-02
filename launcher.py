@@ -91,6 +91,7 @@ class WindowAPI:
         3. Capture screenshot
         4. Show window again
         5. Save screenshot to Pictures folder
+        6. Copy screenshot to clipboard for easy pasting
         
         Returns:
             dict: {"success": True, "path": filepath} or {"success": False, "error": message}
@@ -101,6 +102,8 @@ class WindowAPI:
         try:
             import pyautogui
             from datetime import datetime
+            from PIL import Image
+            import io
             
             # Hide window
             self._window.hide()
@@ -122,6 +125,25 @@ class WindowAPI:
             
             screenshot.save(filepath)
             log.info("Screenshot saved: %s", filepath)
+            
+            # Copy to clipboard using win32clipboard (Windows native)
+            try:
+                import win32clipboard
+                from io import BytesIO
+                
+                # Convert PIL Image to BMP format for clipboard
+                output = BytesIO()
+                screenshot.convert('RGB').save(output, 'BMP')
+                data = output.getvalue()[14:]  # Remove BMP file header (14 bytes)
+                output.close()
+                
+                win32clipboard.OpenClipboard()
+                win32clipboard.EmptyClipboard()
+                win32clipboard.SetClipboardData(win32clipboard.CF_DIB, data)
+                win32clipboard.CloseClipboard()
+                log.info("Screenshot copied to clipboard")
+            except Exception as clip_err:
+                log.warning("Failed to copy to clipboard: %s", clip_err)
             
             return {"success": True, "path": filepath, "folder": pictures_dir}
             

@@ -12,6 +12,7 @@ keyboard>=0.13.5
 
 # Screenshot support
 pyautogui>=0.9.54
+pywin32>=306  # For clipboard support on Windows
 
 # Database
 sqlalchemy>=2.0.0

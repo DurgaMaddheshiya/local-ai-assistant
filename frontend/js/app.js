@@ -980,8 +980,9 @@ class App {
         toast.innerHTML = `
             <div class="toast-content">
                 <div class="toast-message">
-                    <strong>Screenshot saved!</strong><br>
+                    <strong>📸 Screenshot saved & copied!</strong><br>
                     <small style="opacity: 0.8;">${filename}</small><br>
+                    <small style="opacity: 0.7; margin-top: 4px; display: block;">💡 Paste in chat (Ctrl+V) to analyze image with AI</small><br>
                     <button class="open-folder-btn" style="margin-top: 8px; padding: 4px 12px; background: var(--primary-color); border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 12px;">
                         📁 Open Folder
                     </button>
@@ -1005,8 +1006,8 @@ class App {
         
         this.toastContainer.appendChild(toast);
         
-        // Auto-remove after 8 seconds (longer than normal)
-        setTimeout(() => this.removeToast(toast), 8000);
+        // Auto-remove after 10 seconds (extra time to read the hint)
+        setTimeout(() => this.removeToast(toast), 10000);
     }
 }
 
