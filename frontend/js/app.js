@@ -87,6 +87,7 @@ class App {
         this.templatesBtn = document.getElementById('templates-btn');
         this.templatesModal = document.getElementById('templates-modal');
         this.closeTemplatesBtn = document.getElementById('close-templates');
+        this.screenshotBtn = document.getElementById('screenshot-btn');
 
         // Accent color elements
         this.accentColorPicker = document.getElementById('accent-color-picker');
@@ -158,6 +159,9 @@ class App {
         document.querySelectorAll('.template-card').forEach(card => {
             card.addEventListener('click', () => this.applyTemplate(card.dataset.prompt));
         });
+
+        // Screenshot button event
+        this.screenshotBtn?.addEventListener('click', () => this.takeScreenshot());
 
         // Accent color events
         this.accentColorPicker?.addEventListener('input', (e) => this.applyAccentColor(e.target.value));
@@ -939,6 +943,24 @@ class App {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    // Screenshot functionality
+    async takeScreenshot() {
+        try {
+            if (!window.pywebview || !window.pywebview.api) {
+                this.showToast('Screenshot feature requires desktop app', 'error');
+                return;
+            }
+
+            // Call Python API to take screenshot
+            // Window will hide briefly, capture background, then show again
+            await window.pywebview.api.take_screenshot();
+            this.showToast('Screenshot captured!', 'success');
+        } catch (error) {
+            console.error('Screenshot error:', error);
+            this.showToast('Failed to take screenshot', 'error');
+        }
     }
 }
 

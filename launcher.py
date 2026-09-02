@@ -81,6 +81,51 @@ class WindowAPI:
         except Exception as e:
             log.warning("Could not register hotkey '%s': %s", shortcut, e)
 
+    def take_screenshot(self):
+        """
+        Take screenshot of background (behind Durgara window).
+        
+        Process:
+        1. Hide window temporarily
+        2. Wait 200ms for window to disappear from screen
+        3. Capture screenshot
+        4. Show window again
+        5. Save screenshot to Pictures folder
+        """
+        if self._window is None:
+            return
+
+        try:
+            import pyautogui
+            from datetime import datetime
+            
+            # Hide window
+            self._window.hide()
+            time.sleep(0.2)  # Wait for window to disappear
+            
+            # Capture screenshot
+            screenshot = pyautogui.screenshot()
+            
+            # Show window again
+            self._window.show()
+            
+            # Save to Pictures folder
+            pictures_dir = os.path.join(os.path.expanduser("~"), "Pictures", "Durgara")
+            os.makedirs(pictures_dir, exist_ok=True)
+            
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"screenshot_{timestamp}.png"
+            filepath = os.path.join(pictures_dir, filename)
+            
+            screenshot.save(filepath)
+            log.info("Screenshot saved: %s", filepath)
+            
+        except Exception as e:
+            log.error("Screenshot failed: %s", e)
+            # Make sure window is shown again even if error
+            if self._window:
+                self._window.show()
+
 
 # -- port helper --------------------------------------------------------------
 def free_port(port: int):
