@@ -232,13 +232,17 @@ class App {
         try {
             const status = await window.api.getSystemStatus();
             
-            // Update connection indicator
-            const isHealthy = status.backend === 'ok' && status.ollama === 'connected';
-            this.updateConnectionStatus(isHealthy ? 'online' : 'offline');
+            // Backend online is enough - cloud models work without Ollama
+            const backendOk = status.backend === 'ok';
+            const ollamaOk  = status.ollama === 'connected';
             
-            // Update status text
-            if (isHealthy) {
+            this.updateConnectionStatus(backendOk ? 'online' : 'offline');
+            
+            // Show meaningful status text
+            if (backendOk && ollamaOk) {
                 this.connectionText.textContent = `Local AI (${status.model})`;
+            } else if (backendOk && !ollamaOk) {
+                this.connectionText.textContent = 'Cloud AI Ready';
             } else {
                 this.connectionText.textContent = 'AI Service Offline';
             }
