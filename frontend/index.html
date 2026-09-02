@@ -249,9 +249,55 @@
                             <i class="fas fa-edit"></i>
                         </button>
                     </div>
+                    
+                    <!-- Academic Subject Shortcuts -->
+                    <div class="academic-shortcuts" style="margin: 1rem 0; padding: 0.75rem; background: var(--background-secondary); border-radius: var(--radius-md); border-left: 3px solid var(--primary-color);">
+                        <div class="shortcuts-header">
+                            <i class="fas fa-graduation-cap" style="color: var(--primary-color); margin-right: 0.5rem;"></i>
+                            <span style="font-size: 0.9rem; font-weight: 500;">Quick Study Help</span>
+                        </div>
+                        <div class="shortcuts-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-top: 0.75rem;">
+                            <button class="subject-shortcut" data-subject="math" title="Mathematics Help">
+                                <i class="fas fa-calculator"></i>
+                                <span>Math</span>
+                            </button>
+                            <button class="subject-shortcut" data-subject="science" title="Science Help">
+                                <i class="fas fa-flask"></i>
+                                <span>Science</span>
+                            </button>
+                            <button class="subject-shortcut" data-subject="code" title="Programming Help">
+                                <i class="fas fa-code"></i>
+                                <span>Code</span>
+                            </button>
+                            <button class="subject-shortcut" data-subject="essay" title="Writing Help">
+                                <i class="fas fa-pen"></i>
+                                <span>Essay</span>
+                            </button>
+                            <button class="subject-shortcut" data-subject="history" title="History Help">
+                                <i class="fas fa-landmark"></i>
+                                <span>History</span>
+                            </button>
+                            <button class="subject-shortcut" data-subject="language" title="Language Help">
+                                <i class="fas fa-globe"></i>
+                                <span>Lang</span>
+                            </button>
+                            <button class="subject-shortcut" data-subject="homework" title="Homework Scanner">
+                                <i class="fas fa-camera"></i>
+                                <span>Scan</span>
+                            </button>
+                            <button class="subject-shortcut" data-subject="research" title="Research Help">
+                                <i class="fas fa-search"></i>
+                                <span>Research</span>
+                            </button>
+                        </div>
+                    </div>
+                    
                     <div class="chat-controls">
                         <button id="templates-btn" class="templates-btn" title="Conversation Templates">
                             <i class="fas fa-layer-group"></i>
+                        </button>
+                        <button id="screenshot-btn" class="screenshot-btn" title="Take Screenshot (background)">
+                            <i class="fas fa-camera"></i>
                         </button>
                         <div class="zoom-controls">
                             <button id="zoom-out-btn" class="zoom-btn" title="Zoom Out">
@@ -338,47 +384,62 @@
                 <button id="close-templates" class="close-btn"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body">
-                <p class="templates-hint">Select a template to start a focused conversation.</p>
+                <p class="templates-hint">🎓 Select an academic template for instant study help!</p>
                 <div class="templates-grid">
-                    <div class="template-card" data-prompt="You are an expert software engineer. Help me write clean, efficient, and well-documented code. When I share code, review it for bugs, performance issues, and best practices.">
-                        <div class="template-icon"><i class="fas fa-code"></i></div>
-                        <h4>Code Helper</h4>
-                        <p>Write, review & debug code</p>
+                    <!-- Mathematics Help -->
+                    <div class="template-card" data-prompt="You are a mathematics tutor. Help me solve math problems step-by-step. Explain the concepts, show the working, and help me understand the logic behind each step. Cover algebra, calculus, geometry, statistics, and more.">
+                        <div class="template-icon"><i class="fas fa-calculator"></i></div>
+                        <h4>Math Tutor</h4>
+                        <p>Step-by-step math solutions</p>
                     </div>
-                    <div class="template-card" data-prompt="You are a professional translator. Translate any text I provide accurately while preserving tone, context and meaning. Ask me which language to translate to if not specified.">
-                        <div class="template-icon"><i class="fas fa-language"></i></div>
-                        <h4>Translator</h4>
-                        <p>Translate text between languages</p>
+                    
+                    <!-- Science Helper -->
+                    <div class="template-card" data-prompt="You are a science tutor specializing in Physics, Chemistry, and Biology. Explain scientific concepts clearly, help with lab reports, solve numerical problems, and provide examples from real life.">
+                        <div class="template-icon"><i class="fas fa-flask"></i></div>
+                        <h4>Science Tutor</h4>
+                        <p>Physics, Chemistry, Biology help</p>
                     </div>
-                    <div class="template-card" data-prompt="You are an expert at summarizing content. When I provide text, articles, or documents, give me a concise summary with key points in bullet form.">
-                        <div class="template-icon"><i class="fas fa-compress-alt"></i></div>
-                        <h4>Summarizer</h4>
-                        <p>Summarize long text quickly</p>
+                    
+                    <!-- Programming & CS -->
+                    <div class="template-card" data-prompt="You are a computer science instructor. Help me understand programming concepts, debug code, explain algorithms, data structures, and software engineering principles. Provide clean, commented code examples.">
+                        <div class="template-icon"><i class="fas fa-laptop-code"></i></div>
+                        <h4>CS & Programming</h4>
+                        <p>Code, algorithms, debugging</p>
                     </div>
-                    <div class="template-card" data-prompt="You are a professional writing coach. Help me improve my writing — fix grammar, improve clarity, enhance style, and suggest better word choices. Explain your changes.">
-                        <div class="template-icon"><i class="fas fa-pen-fancy"></i></div>
-                        <h4>Writing Coach</h4>
-                        <p>Improve grammar & writing style</p>
+                    
+                    <!-- Essay & Writing -->
+                    <div class="template-card" data-prompt="You are an academic writing coach. Help me structure essays, improve arguments, fix grammar, create outlines, and develop thesis statements. Guide me through the writing process step-by-step.">
+                        <div class="template-icon"><i class="fas fa-pen-nib"></i></div>
+                        <h4>Essay Helper</h4>
+                        <p>Writing, structure, grammar</p>
                     </div>
-                    <div class="template-card" data-prompt="You are a patient and knowledgeable teacher. Explain any concept I ask about in simple terms with examples. Adjust your explanation based on my level of understanding.">
-                        <div class="template-icon"><i class="fas fa-graduation-cap"></i></div>
-                        <h4>Teacher</h4>
-                        <p>Explain any concept clearly</p>
+                    
+                    <!-- Research Assistant -->
+                    <div class="template-card" data-prompt="You are a research assistant. Help me find reliable sources, create bibliographies, understand research methods, and organize information for academic projects. Guide me through proper citation formats.">
+                        <div class="template-icon"><i class="fas fa-search"></i></div>
+                        <h4>Research Helper</h4>
+                        <p>Sources, citations, methodology</p>
                     </div>
-                    <div class="template-card" data-prompt="You are a creative brainstorming partner. Help me generate ideas, think outside the box, and explore different perspectives on any topic I bring up.">
-                        <div class="template-icon"><i class="fas fa-lightbulb"></i></div>
-                        <h4>Brainstorm</h4>
-                        <p>Generate ideas & explore topics</p>
+                    
+                    <!-- Language Learning -->
+                    <div class="template-card" data-prompt="You are a language tutor. Help me learn grammar, vocabulary, pronunciation, and conversation skills. Provide translations, explain language rules, and create practice exercises.">
+                        <div class="template-icon"><i class="fas fa-globe"></i></div>
+                        <h4>Language Tutor</h4>
+                        <p>Grammar, vocabulary, practice</p>
                     </div>
-                    <div class="template-card" data-prompt="You are a data analysis expert. Help me understand data, write SQL or Python queries, explain statistical concepts, and interpret results in plain language.">
-                        <div class="template-icon"><i class="fas fa-chart-bar"></i></div>
-                        <h4>Data Analyst</h4>
-                        <p>Analyze data & write queries</p>
+                    
+                    <!-- History & Social Studies -->
+                    <div class="template-card" data-prompt="You are a history and social studies teacher. Help me understand historical events, analyze primary sources, explain cause-and-effect relationships, and connect past events to current issues.">
+                        <div class="template-icon"><i class="fas fa-landmark"></i></div>
+                        <h4>History Tutor</h4>
+                        <p>Events, analysis, connections</p>
                     </div>
-                    <div class="template-card" data-prompt="You are a cybersecurity expert. Help me understand security concepts, review code for vulnerabilities, explain attack vectors, and suggest security best practices. For educational purposes only.">
-                        <div class="template-icon"><i class="fas fa-shield-alt"></i></div>
-                        <h4>Security Advisor</h4>
-                        <p>Security concepts & best practices</p>
+                    
+                    <!-- Homework Scanner -->
+                    <div class="template-card" data-prompt="You are a homework assistant. I'll show you images of homework problems or assignments. Analyze the content, provide step-by-step solutions, and explain the concepts involved. Help me understand, don't just give answers.">
+                        <div class="template-icon"><i class="fas fa-camera"></i></div>
+                        <h4>Homework Scanner</h4>
+                        <p>Screenshot → Solution</p>
                     </div>
                 </div>
             </div>

@@ -162,6 +162,11 @@ class App {
 
         // Screenshot button event
         this.screenshotBtn?.addEventListener('click', () => this.takeScreenshot());
+        
+        // Academic subject shortcuts
+        document.querySelectorAll('.subject-shortcut').forEach(btn => {
+            btn.addEventListener('click', () => this.applySubjectTemplate(btn.dataset.subject));
+        });
 
         // Accent color events
         this.accentColorPicker?.addEventListener('input', (e) => this.applyAccentColor(e.target.value));
@@ -395,6 +400,50 @@ class App {
         // Focus input
         if (this.chatManager.messageInput) {
             this.chatManager.messageInput.focus();
+        }
+    }
+
+    // ── Academic Subject Templates ────────────────────────────────────────
+    async applySubjectTemplate(subject) {
+        const templates = {
+            math: "You are a mathematics tutor. Help me solve math problems step-by-step. Explain concepts clearly, show all working, and help me understand the logic behind each solution. Cover algebra, calculus, geometry, statistics, and more.",
+            
+            science: "You are a science tutor specializing in Physics, Chemistry, and Biology. Explain scientific concepts clearly, help with calculations, and provide real-world examples. Break down complex topics into understandable parts.",
+            
+            code: "You are a computer science instructor. Help me understand programming concepts, debug code, explain algorithms, and provide clean examples. Focus on learning and best practices, not just solutions.",
+            
+            essay: "You are an academic writing coach. Help me structure essays, develop arguments, improve grammar, create outlines, and strengthen thesis statements. Guide me through the writing process step-by-step.",
+            
+            history: "You are a history teacher. Help me understand historical events, analyze causes and effects, explain connections between past and present, and provide context for historical developments.",
+            
+            language: "You are a language tutor. Help me with grammar, vocabulary, sentence structure, and language learning. Provide explanations, corrections, and practice exercises as needed.",
+            
+            homework: "You are a homework assistant. I'll show you images of assignments or problems. Analyze them carefully, provide step-by-step solutions, and explain the concepts involved. Focus on teaching, not just answering.",
+            
+            research: "You are a research assistant. Help me find reliable sources, understand research methods, organize information, create proper citations, and structure academic projects effectively."
+        };
+
+        const systemPrompt = templates[subject];
+        if (systemPrompt) {
+            // Start new chat with subject template
+            await this.chatManager.startNewChat();
+            this.chatManager.templateSystemPrompt = systemPrompt;
+            
+            // Show subject-specific toast
+            const subjectNames = {
+                math: 'Mathematics', science: 'Science', code: 'Programming', 
+                essay: 'Writing', history: 'History', language: 'Language',
+                homework: 'Homework Scanner', research: 'Research'
+            };
+            
+            this.showToast(`📚 ${subjectNames[subject]} tutor ready!`, 'success');
+            
+            // Focus input
+            if (this.chatManager.messageInput) {
+                this.chatManager.messageInput.focus();
+                // Add helpful placeholder
+                this.chatManager.messageInput.placeholder = `Ask your ${subjectNames[subject].toLowerCase()} question...`;
+            }
         }
     }
 

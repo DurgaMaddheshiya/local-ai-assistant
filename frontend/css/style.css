@@ -1650,6 +1650,59 @@ body {
     transform: scale(0.95);
 }
 
+/* Academic Subject Shortcuts */
+.academic-shortcuts {
+    user-select: none;
+}
+
+.shortcuts-header {
+    display: flex;
+    align-items: center;
+    color: var(--text-primary);
+}
+
+.shortcuts-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.subject-shortcut {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.5rem 0.25rem;
+    background: var(--background-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    gap: 0.25rem;
+}
+
+.subject-shortcut:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    transform: translateY(-1px);
+}
+
+.subject-shortcut:active {
+    transform: translateY(0) scale(0.95);
+}
+
+.subject-shortcut i {
+    font-size: 1rem;
+}
+
+.subject-shortcut span {
+    font-weight: 500;
+    white-space: nowrap;
+}
+
 /* Templates Modal */
 .templates-modal-content {
     max-width: 680px;
