@@ -5,6 +5,9 @@ Routes requests to appropriate provider based on model name prefix.
 import asyncio
 import json
 import logging
+import os
+import random
+import time
 from typing import AsyncGenerator, Dict, List, Optional
 import httpx
 
@@ -28,6 +31,40 @@ def get_provider(model: str) -> str:
     return "ollama"
 
 
+def get_stealth_headers():
+    """Generate randomized headers to avoid detection"""
+    user_agents = [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/121.0",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/120.0.0.0 Safari/537.36",
+    ]
+    
+    # Use custom agent from environment if set by launcher
+    stealth_agent = os.environ.get('STEALTH_USER_AGENT', random.choice(user_agents))
+    
+    headers = {
+        "User-Agent": stealth_agent,
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept-Encoding": "gzip, deflate, br",
+        "DNT": "1",
+        "Connection": "keep-alive",
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "cross-site",
+    }
+    
+    return headers
+
+
+async def stealth_delay():
+    """Random delay to avoid pattern detection"""
+    base_delay = float(os.environ.get('STEALTH_DELAY', '0.2'))
+    actual_delay = base_delay + random.uniform(0.05, 0.3)
+    await asyncio.sleep(actual_delay)
+
+
 class CloudLLMService:
     """Routes LLM requests to OpenAI / Gemini / Claude."""
 
@@ -45,6 +82,7 @@ class CloudLLMService:
         headers = {
             "Authorization": f"Bearer {self.openai_key}",
             "Content-Type": "application/json",
+            **get_stealth_headers()  # Add stealth headers
         }
         payload = {
             "model": model,
@@ -54,6 +92,7 @@ class CloudLLMService:
             "max_tokens": max_tokens,
         }
         try:
+            await stealth_delay()  # Random delay
             async with httpx.AsyncClient(timeout=120) as client:
                 async with client.stream("POST",
                     "https://api.openai.com/v1/chat/completions",
@@ -124,7 +163,11 @@ class CloudLLMService:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={self.gemini_key}"
         
         try:
-            async with httpx.AsyncClient(timeout=120) as client:
+            await stealth_delay()  # Random delay
+            async with httpx.AsyncClient(
+                timeout=120,
+                headers=get_stealth_headers()  # Add stealth headers
+            ) as client:
                 resp = await client.post(url, json=payload)
                 
                 if resp.status_code != 200:
@@ -193,6 +236,7 @@ class CloudLLMService:
             "x-api-key": self.claude_key,
             "anthropic-version": "2023-06-01",
             "Content-Type": "application/json",
+            **get_stealth_headers()  # Add stealth headers
         }
         payload = {
             "model": model,
@@ -205,6 +249,7 @@ class CloudLLMService:
             payload["system"] = system_text
 
         try:
+            await stealth_delay()  # Random delay
             async with httpx.AsyncClient(timeout=120) as client:
                 async with client.stream("POST",
                     "https://api.anthropic.com/v1/messages",
