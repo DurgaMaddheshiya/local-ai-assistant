@@ -157,6 +157,14 @@ class OllamaService:
                 ) as response:
 
                     if response.status_code != 200:
+                        # Special handling for image requests with non-vision models
+                        if response.status_code == 400 and images:
+                            yield {
+                                "error": f"Model '{model_to_use}' does not support images. Please use a vision model (like 'llava:7b') or switch to GPT-4 Vision / Gemini Vision in Settings.",
+                                "done": True
+                            }
+                            return
+                        
                         error_msg = f"Ollama API error: HTTP {response.status_code}"
                         logger.error(error_msg)
                         yield {"error": error_msg, "done": True}
