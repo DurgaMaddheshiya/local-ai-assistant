@@ -955,12 +955,58 @@ class App {
 
             // Call Python API to take screenshot
             // Window will hide briefly, capture background, then show again
-            await window.pywebview.api.take_screenshot();
-            this.showToast('Screenshot captured!', 'success');
+            const result = await window.pywebview.api.take_screenshot();
+            
+            if (result && result.success) {
+                // Show success with path and Open Folder button
+                this.showScreenshotToast(result.path, result.folder);
+            } else {
+                const errorMsg = result?.error || 'Unknown error';
+                this.showToast(`Screenshot failed: ${errorMsg}`, 'error');
+            }
         } catch (error) {
             console.error('Screenshot error:', error);
             this.showToast('Failed to take screenshot', 'error');
         }
+    }
+
+    showScreenshotToast(filepath, folder) {
+        const toast = document.createElement('div');
+        toast.className = 'toast success';
+        
+        // Extract filename from path
+        const filename = filepath.split('\\').pop();
+        
+        toast.innerHTML = `
+            <div class="toast-content">
+                <div class="toast-message">
+                    <strong>Screenshot saved!</strong><br>
+                    <small style="opacity: 0.8;">${filename}</small><br>
+                    <button class="open-folder-btn" style="margin-top: 8px; padding: 4px 12px; background: var(--primary-color); border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 12px;">
+                        📁 Open Folder
+                    </button>
+                </div>
+            </div>
+            <button class="toast-close">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        const closeBtn = toast.querySelector('.toast-close');
+        closeBtn.addEventListener('click', () => this.removeToast(toast));
+        
+        const openFolderBtn = toast.querySelector('.open-folder-btn');
+        openFolderBtn.addEventListener('click', () => {
+            if (window.pywebview && window.pywebview.api) {
+                window.pywebview.api.open_folder(folder);
+            }
+            this.removeToast(toast);
+        });
+        
+        this.toastContainer.appendChild(toast);
+        
+        // Auto-remove after 8 seconds (longer than normal)
+        setTimeout(() => this.removeToast(toast), 8000);
     }
 }
 

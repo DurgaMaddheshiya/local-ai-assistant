@@ -91,9 +91,12 @@ class WindowAPI:
         3. Capture screenshot
         4. Show window again
         5. Save screenshot to Pictures folder
+        
+        Returns:
+            dict: {"success": True, "path": filepath} or {"success": False, "error": message}
         """
         if self._window is None:
-            return
+            return {"success": False, "error": "Window not initialized"}
 
         try:
             import pyautogui
@@ -120,11 +123,23 @@ class WindowAPI:
             screenshot.save(filepath)
             log.info("Screenshot saved: %s", filepath)
             
+            return {"success": True, "path": filepath, "folder": pictures_dir}
+            
         except Exception as e:
             log.error("Screenshot failed: %s", e)
             # Make sure window is shown again even if error
             if self._window:
                 self._window.show()
+            return {"success": False, "error": str(e)}
+    
+    def open_folder(self, path: str):
+        """Open a folder in Windows Explorer."""
+        try:
+            import subprocess
+            subprocess.Popen(f'explorer "{path}"')
+            log.info("Opened folder: %s", path)
+        except Exception as e:
+            log.error("Failed to open folder: %s", e)
 
 
 # -- port helper --------------------------------------------------------------
