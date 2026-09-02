@@ -148,7 +148,38 @@ def wait_for_backend(timeout: int = 30) -> bool:
 
 
 # -- global hotkey thread -----------------------------------------------------
-def start_hotkey_listener(api: WindowAPI):
+def apply_screenshot_protection(window_title: str = "Durgara"):
+    """
+    Apply WDA_EXCLUDEFROMCAPTURE so the window appears black/blank
+    in screenshots, screen recording, and screen share tools.
+    Uses Windows SetWindowDisplayAffinity API (same as Netflix/banking apps).
+    """
+    try:
+        import ctypes
+        import ctypes.wintypes
+
+        user32 = ctypes.windll.user32
+
+        # Find our window handle by title
+        hwnd = user32.FindWindowW(None, window_title)
+        if not hwnd:
+            log.warning("Screenshot protection: window handle not found.")
+            return
+
+        # WDA_EXCLUDEFROMCAPTURE = 0x00000011
+        # Makes window appear black in any screen capture tool
+        WDA_EXCLUDEFROMCAPTURE = 0x00000011
+        result = user32.SetWindowDisplayAffinity(hwnd, WDA_EXCLUDEFROMCAPTURE)
+
+        if result:
+            log.info("Screenshot protection enabled (WDA_EXCLUDEFROMCAPTURE)")
+        else:
+            log.warning("Screenshot protection: SetWindowDisplayAffinity failed.")
+    except Exception as e:
+        log.warning("Screenshot protection not applied: %s", e)
+
+
+
     """Register the initial hotkey (default: Ctrl+H) as a global hotkey.
     JS can change it anytime via api.set_hotkey(). Works even when window is hidden."""
     try:
@@ -197,6 +228,14 @@ def main():
         daemon=True
     )
     hotkey_thread.start()
+
+    # 6. Apply screenshot protection after window is fully loaded
+    def on_loaded():
+        time.sleep(1)  # wait for window to fully render
+        apply_screenshot_protection("Durgara")
+
+    protect_thread = threading.Thread(target=on_loaded, daemon=True)
+    protect_thread.start()
 
     log.info("Opening desktop window at %s", URL)
     webview.start(debug=False)
