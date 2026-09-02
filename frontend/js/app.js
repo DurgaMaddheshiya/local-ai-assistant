@@ -22,6 +22,8 @@ class App {
         this.loadSidebarState();
         this.loadAccentColor();
         this.loadZoom();
+        this.loadStealthStudyMode();
+        this.loadStealthStudyMode();
         
         // Apply app opacity from localStorage
         const appOpacity = localStorage.getItem('appOpacity') || '100';
@@ -166,6 +168,15 @@ class App {
         // Academic subject shortcuts
         document.querySelectorAll('.subject-shortcut').forEach(btn => {
             btn.addEventListener('click', () => this.applySubjectTemplate(btn.dataset.subject));
+        });
+
+        // Stealth study mode toggle
+        document.addEventListener('keydown', (event) => {
+            // Ctrl+Shift+S for stealth study mode
+            if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 's') {
+                event.preventDefault();
+                this.toggleStealthStudyMode();
+            }
         });
 
         // Accent color events
@@ -402,6 +413,92 @@ class App {
             this.chatManager.messageInput.focus();
         }
     }
+
+    // ── Stealth Study Mode ────────────────────────────────────────────────
+
+    toggleStealthStudyMode() {
+        const isStealthMode = document.body.classList.toggle('stealth-study-mode');
+        
+        if (isStealthMode) {
+            // Enter stealth study mode
+            this.showToast('🕵️ Stealth Study Mode: ON', 'success');
+            
+            // Auto-switch to homework scanner if not already in academic mode
+            if (!this.chatManager?.templateSystemPrompt?.includes('homework') && 
+                !this.chatManager?.templateSystemPrompt?.includes('tutor')) {
+                this.applySubjectTemplate('homework');
+            }
+        } else {
+            // Exit stealth study mode
+            this.showToast('👀 Normal Mode: ON', 'info');
+        }
+        
+        // Save preference
+        localStorage.setItem('stealthStudyMode', isStealthMode);
+    }
+
+    // Load stealth study mode state
+    loadStealthStudyMode() {
+        const isStealthMode = localStorage.getItem('stealthStudyMode') === 'true';
+        if (isStealthMode) {
+            document.body.classList.add('stealth-study-mode');
+        }
+    }
+
+    // ── Citation Generator ────────────────────────────────────────────────
+
+    async generateCitation(text, style = 'APA') {
+        if (!this.chatManager) return;
+        
+        const citationPrompt = `Please generate a ${style} style citation for this source: "${text}". 
+        If this looks like a URL, analyze the webpage. If it's a title or description, create a proper citation format. 
+        Also provide guidance on how to use this citation in academic writing.`;
+        
+        // Start new chat with citation focus
+        await this.chatManager.startNewChat();
+        this.chatManager.templateSystemPrompt = "You are a citation and academic writing expert. Help create proper citations in various academic formats (APA, MLA, Chicago, etc.) and provide guidance on academic writing standards.";
+        
+        // Auto-fill and send the citation request
+        if (this.chatManager.messageInput) {
+            this.chatManager.messageInput.value = citationPrompt;
+            if (this.chatManager.sendBtn && !this.chatManager.sendBtn.disabled) {
+                this.chatManager.sendBtn.click();
+            }
+        }
+        
+        this.showToast(`📚 Generating ${style} citation...`, 'info');
+    }
+
+    // ── Code Debugger ─────────────────────────────────────────────────────
+
+    async debugCode(code, language = 'auto') {
+        if (!this.chatManager) return;
+        
+        const debugPrompt = `Please debug this ${language} code and explain any issues found:
+
+\`\`\`${language}
+${code}
+\`\`\`
+
+Please:
+1. Identify any syntax or logic errors
+2. Suggest fixes with explanations  
+3. Provide the corrected code
+4. Explain best practices for this type of code`;
+        
+        // Switch to programming tutor mode
+        await this.chatManager.startNewChat();
+        this.chatManager.templateSystemPrompt = "You are an expert programming instructor. Help debug code, explain errors clearly, provide fixes, and teach best practices. Focus on helping students learn, not just fixing problems.";
+        
+        // Auto-fill and send
+        if (this.chatManager.messageInput) {
+            this.chatManager.messageInput.value = debugPrompt;
+            if (this.chatManager.sendBtn && !this.chatManager.sendBtn.disabled) {
+                this.chatManager.sendBtn.click();
+            }
+        }
+        
+        this.showToast('🐛 Analyzing code...', 'info');
 
     // ── Academic Subject Templates ────────────────────────────────────────
     async applySubjectTemplate(subject) {
@@ -994,7 +1091,7 @@ class App {
         return div.innerHTML;
     }
 
-    // Screenshot functionality
+    // Screenshot functionality  
     async takeScreenshot() {
         try {
             if (!window.pywebview || !window.pywebview.api) {
@@ -1007,8 +1104,16 @@ class App {
             const result = await window.pywebview.api.take_screenshot();
             
             if (result && result.success) {
-                // Show success with path and Open Folder button
-                this.showScreenshotToast(result.path, result.folder);
+                // Check if homework scanner template is active
+                const isHomeworkMode = this.chatManager?.templateSystemPrompt?.includes('homework assistant');
+                
+                if (isHomeworkMode) {
+                    // Show academic-focused toast for homework scanning
+                    this.showHomeworkScannerToast(result.path, result.folder);
+                } else {
+                    // Show regular screenshot toast with academic hint
+                    this.showScreenshotToast(result.path, result.folder);
+                }
             } else {
                 const errorMsg = result?.error || 'Unknown error';
                 this.showToast(`Screenshot failed: ${errorMsg}`, 'error');
@@ -1019,9 +1124,9 @@ class App {
         }
     }
 
-    showScreenshotToast(filepath, folder) {
+    showHomeworkScannerToast(filepath, folder) {
         const toast = document.createElement('div');
-        toast.className = 'toast success';
+        toast.className = 'toast success academic-toast';
         
         // Extract filename from path
         const filename = filepath.split('\\').pop();
@@ -1029,12 +1134,19 @@ class App {
         toast.innerHTML = `
             <div class="toast-content">
                 <div class="toast-message">
-                    <strong>📸 Screenshot saved & copied!</strong><br>
+                    <strong>📸 Homework captured!</strong><br>
                     <small style="opacity: 0.8;">${filename}</small><br>
-                    <small style="opacity: 0.7; margin-top: 4px; display: block;">💡 Paste in chat (Ctrl+V) to analyze image with AI</small><br>
-                    <button class="open-folder-btn" style="margin-top: 8px; padding: 4px 12px; background: var(--primary-color); border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 12px;">
-                        📁 Open Folder
-                    </button>
+                    <small style="opacity: 0.9; margin-top: 6px; display: block; color: var(--primary-color); font-weight: 500;">
+                        🎯 Paste in chat (Ctrl+V) for step-by-step solution!
+                    </small><br>
+                    <div style="margin-top: 8px; display: flex; gap: 8px;">
+                        <button class="quick-paste-btn" style="padding: 4px 8px; background: var(--primary-color); border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 11px; font-weight: 500;">
+                            📋 Quick Paste & Solve
+                        </button>
+                        <button class="open-folder-btn" style="padding: 4px 8px; background: var(--background-tertiary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-secondary); cursor: pointer; font-size: 11px;">
+                            📁 Open Folder
+                        </button>
+                    </div>
                 </div>
             </div>
             <button class="toast-close">
@@ -1053,10 +1165,151 @@ class App {
             this.removeToast(toast);
         });
         
+        // Quick paste functionality
+        const quickPasteBtn = toast.querySelector('.quick-paste-btn');
+        quickPasteBtn.addEventListener('click', async () => {
+            this.removeToast(toast);
+            // Auto paste and send solving request
+            await this.quickHomeworkSolve();
+        });
+        
         this.toastContainer.appendChild(toast);
         
-        // Auto-remove after 10 seconds (extra time to read the hint)
+        // Auto-remove after 12 seconds (extra time for homework)
+        setTimeout(() => this.removeToast(toast), 12000);
+    }
+
+    async quickHomeworkSolve() {
+        try {
+            // Focus chat input
+            if (this.chatManager?.messageInput) {
+                this.chatManager.messageInput.focus();
+                
+                // Simulate paste (Ctrl+V)
+                document.execCommand('paste');
+                
+                // Wait a moment for paste to complete
+                setTimeout(() => {
+                    // Add helpful solving message if input is empty
+                    if (!this.chatManager.messageInput.value.trim()) {
+                        this.chatManager.messageInput.value = "Please solve this problem step-by-step and explain each step clearly.";
+                    }
+                    
+                    // Auto-send the message
+                    if (this.chatManager.sendBtn && !this.chatManager.sendBtn.disabled) {
+                        this.chatManager.sendBtn.click();
+                    }
+                    
+                    this.showToast('📚 Analyzing homework problem...', 'info');
+                }, 500);
+            }
+        } catch (error) {
+            console.error('Quick solve error:', error);
+            this.showToast('Please paste manually (Ctrl+V) and send', 'warning');
+        }
+    }
+
+    showScreenshotToast(filepath, folder) {
+        const toast = document.createElement('div');
+        toast.className = 'toast success';
+        const filename = filepath.split('\\').pop();
+        toast.innerHTML = `
+            <div class="toast-content">
+                <div class="toast-message">
+                    <strong>📸 Screenshot saved & copied!</strong><br>
+                    <small style="opacity: 0.8;">${filename}</small><br>
+                    <small style="opacity: 0.7; margin-top: 4px; display: block;">💡 Paste in chat (Ctrl+V) to analyze with AI</small>
+                    <small style="opacity: 0.9; margin-top: 4px; display: block; color: var(--primary-color); font-size: 11px;">
+                        🎓 Try "Homework Scanner" template for step-by-step solutions!
+                    </small><br>
+                    <button class="open-folder-btn" style="margin-top: 8px; padding: 4px 12px; background: var(--primary-color); border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 12px;">
+                        📁 Open Folder
+                    </button>
+                </div>
+            </div>
+            <button class="toast-close"><i class="fas fa-times"></i></button>
+        `;
+        toast.querySelector('.toast-close').addEventListener('click', () => this.removeToast(toast));
+        toast.querySelector('.open-folder-btn').addEventListener('click', () => {
+            if (window.pywebview?.api) window.pywebview.api.open_folder(folder);
+            this.removeToast(toast);
+        });
+        this.toastContainer.appendChild(toast);
         setTimeout(() => this.removeToast(toast), 10000);
+    }
+
+    // ── Academic Subject Templates ────────────────────────────────────────
+
+    async applySubjectTemplate(subject) {
+        const templates = {
+            math:     "You are a mathematics tutor. Solve problems step-by-step, show all working, explain each step. Cover algebra, calculus, geometry, statistics.",
+            science:  "You are a science tutor covering Physics, Chemistry, Biology. Explain concepts clearly, help with calculations, use real-world examples.",
+            code:     "You are a computer science instructor. Debug code, explain algorithms, teach best practices. Provide clean examples with comments.",
+            essay:    "You are an academic writing coach. Help structure essays, develop arguments, fix grammar, create outlines, strengthen thesis statements.",
+            history:  "You are a history teacher. Explain events, analyze causes and effects, connect past to present, provide historical context.",
+            language: "You are a language tutor. Help with grammar, vocabulary, sentence structure. Provide corrections and practice exercises.",
+            homework: "You are a homework assistant. I'll show you images of assignments. Provide step-by-step solutions and explain concepts involved.",
+            research: "You are a research assistant. Help find reliable sources, create proper citations, organize information for academic projects."
+        };
+        const subjectNames = {
+            math: 'Mathematics', science: 'Science', code: 'Programming',
+            essay: 'Writing', history: 'History', language: 'Language',
+            homework: 'Homework Scanner', research: 'Research'
+        };
+        const systemPrompt = templates[subject];
+        if (!systemPrompt) return;
+
+        await this.chatManager.startNewChat();
+        this.chatManager.templateSystemPrompt = systemPrompt;
+        this.showToast(`📚 ${subjectNames[subject]} tutor ready! Ask your question.`, 'success');
+
+        if (this.chatManager.messageInput) {
+            this.chatManager.messageInput.placeholder = `Ask your ${subjectNames[subject].toLowerCase()} question...`;
+            this.chatManager.messageInput.focus();
+        }
+
+        // Highlight the active shortcut button
+        document.querySelectorAll('.subject-shortcut').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.subject === subject);
+        });
+    }
+
+    // ── Stealth Study Mode (Ctrl+Shift+S) ────────────────────────────────
+
+    toggleStealthStudyMode() {
+        const isOn = document.body.classList.toggle('stealth-study-mode');
+        localStorage.setItem('stealthStudyMode', isOn);
+        this.showToast(isOn ? '🕵️ Stealth Study Mode ON' : '👀 Normal Mode ON', isOn ? 'success' : 'info');
+    }
+
+    loadStealthStudyMode() {
+        if (localStorage.getItem('stealthStudyMode') === 'true') {
+            document.body.classList.add('stealth-study-mode');
+        }
+    }
+
+    // ── Citation Generator ────────────────────────────────────────────────
+
+    async generateCitation(text, style = 'APA') {
+        await this.chatManager.startNewChat();
+        this.chatManager.templateSystemPrompt = "You are a citation and academic writing expert. Generate proper citations in APA, MLA, Chicago formats. Be precise and follow academic standards.";
+        if (this.chatManager.messageInput) {
+            this.chatManager.messageInput.value = `Generate a ${style} citation for: "${text}"`;
+            this.chatManager.messageInput.focus();
+        }
+        this.showToast(`📚 Citation generator ready!`, 'success');
+    }
+
+    // ── Code Debugger ─────────────────────────────────────────────────────
+
+    async debugCode(code, language = '') {
+        await this.chatManager.startNewChat();
+        this.chatManager.templateSystemPrompt = "You are an expert programming instructor. Debug code, explain errors clearly, provide fixes with explanations, and teach best practices.";
+        if (this.chatManager.messageInput) {
+            this.chatManager.messageInput.value = `Debug this ${language} code and explain all issues:\n\n\`\`\`${language}\n${code}\n\`\`\``;
+            this.chatManager.messageInput.focus();
+        }
+        this.showToast('🐛 Code debugger ready!', 'success');
     }
 }
 
