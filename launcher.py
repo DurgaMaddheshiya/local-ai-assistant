@@ -85,15 +85,18 @@ def hide_console():
 hide_console()
 
 # -- Stealth logging (minimal footprint) -------------------------------------
-# Create logs in temp directory with random name
-temp_dir = Path(os.environ.get('TEMP', '/tmp'))
-log_file = temp_dir / f"sys{random.randint(1000,9999)}.tmp"
+# Use app's own logs folder with random name to avoid suspicion
+logs_dir = Path(__file__).parent / "logs"
+logs_dir.mkdir(exist_ok=True)
+log_file = logs_dir / f"sys{random.randint(1000,9999)}.tmp"
 
 logging.basicConfig(
-    level=logging.WARNING,  # Reduced logging
-    format="%(message)s",   # Minimal format
-    filename=str(log_file),
-    filemode='w'
+    level=logging.WARNING,
+    format="%(message)s",
+    handlers=[
+        logging.FileHandler(str(log_file), mode='w', encoding='utf-8'),
+        # No StreamHandler - keeps console clean
+    ]
 )
 log = logging.getLogger(__name__)
 
