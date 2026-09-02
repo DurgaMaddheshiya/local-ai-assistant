@@ -154,6 +154,16 @@ async def chat_endpoint(
         # Get settings
         temperature = request.temperature or float(get_setting(db, "temperature", str(settings.default_temperature)))
         max_tokens = request.max_tokens or int(get_setting(db, "max_tokens", str(settings.default_max_tokens)))
+        
+        # Validate max_tokens for different providers
+        provider = get_provider(request.model or get_setting(db, "current_model", settings.ollama_model))
+        if provider == "gemini":
+            max_tokens = min(max_tokens, 8192)  # Gemini limit
+        elif provider == "claude":  
+            max_tokens = min(max_tokens, 4096)  # Claude limit
+        elif provider == "openai":
+            max_tokens = min(max_tokens, 16384) # GPT-4 limit
+        
         model = request.model or get_setting(db, "current_model", settings.ollama_model)
 
         # Set the model in Ollama service

@@ -114,7 +114,7 @@ class CloudLLMService:
             "contents": contents,
             "generationConfig": {
                 "temperature": temperature,
-                "maxOutputTokens": max_tokens,
+                "maxOutputTokens": min(max_tokens, 8192),  # Gemini max limit is 8192
             }
         }
         if system_text:
