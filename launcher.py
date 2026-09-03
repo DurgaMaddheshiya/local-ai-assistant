@@ -149,6 +149,10 @@ def apply_registry_cloaking():
                     pass
         except:
             pass
+        print("📋 Registry cloaking applied")
+    except Exception as e:
+        print(f"Registry cloaking error: {e}")
+
 def apply_advanced_stealth():
     """Ultimate stealth package - invisible to all detection methods"""
     try:
