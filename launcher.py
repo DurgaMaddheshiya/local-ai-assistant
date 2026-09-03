@@ -85,12 +85,11 @@ def hide_console():
 hide_console()
 
 # -- Stealth logging (minimal footprint) -------------------------------------
-# Use app's own logs folder with random name to avoid suspicion
 logs_dir = Path(__file__).parent / "logs"
 logs_dir.mkdir(exist_ok=True)
 log_file = logs_dir / f"sys{random.randint(1000,9999)}.tmp"
 
-# Only configure our own logger - don't touch uvicorn/backend loggers
+# Only configure OUR logger - don't touch root logger (uvicorn/backend need it)
 log = logging.getLogger(__name__)
 log.setLevel(logging.WARNING)
 _fh = logging.FileHandler(str(log_file), mode='w', encoding='utf-8')

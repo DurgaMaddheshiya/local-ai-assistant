@@ -629,58 +629,48 @@ class ChatManager {
     async loadModels() {
         try {
             const response = await window.api.getModels();
-            
+
             // getCurrentModel separately - don't block if it fails
             let currentModel = null;
-            try {
-                currentModel = await window.api.getCurrentModel();
-            } catch (e) {
-                console.warn('Could not get current model:', e);
-            }
-            
-            this.modelSelect.innerHTML = '';
-            
-            if (response.models && response.models.length > 0) {
-                // Group models: local first, then cloud
-                const localModels = response.models.filter(m => !m.details?.cloud);
-                const cloudModels = response.models.filter(m => m.details?.cloud);
+            try { currentModel = await window.api.getCurrentModel(); } catch(e) {}
 
-                // Add local models with group label
+            this.modelSelect.innerHTML = '';
+
+            if (response.models && response.models.length > 0) {
+                const localModels = response.models.filter(m => !m.details?.cloud);
+                const cloudModels = response.models.filter(m =>  m.details?.cloud);
+
                 if (localModels.length > 0) {
-                    const localGroup = document.createElement('optgroup');
-                    localGroup.label = '🖥️ Local (Ollama)';
-                    for (const model of localModels) {
-                        const option = document.createElement('option');
-                        option.value = model.name;
-                        option.textContent = model.name;
-                        if (model.name === currentModel?.current_model) option.selected = true;
-                        localGroup.appendChild(option);
-                    }
-                    this.modelSelect.appendChild(localGroup);
+                    const grp = document.createElement('optgroup');
+                    grp.label = '🖥️ Local (Ollama)';
+                    localModels.forEach(m => {
+                        const opt = document.createElement('option');
+                        opt.value = m.name;
+                        opt.textContent = m.name;
+                        if (m.name === currentModel?.current_model) opt.selected = true;
+                        grp.appendChild(opt);
+                    });
+                    this.modelSelect.appendChild(grp);
                 }
 
-                // Add cloud models with group label
                 if (cloudModels.length > 0) {
-                    const cloudGroup = document.createElement('optgroup');
-                    cloudGroup.label = '☁️ Cloud (API Key Required)';
-                    for (const model of cloudModels) {
-                        const option = document.createElement('option');
-                        option.value = model.name;
-                        option.textContent = model.name;
-                        if (model.name === currentModel?.current_model) option.selected = true;
-                        cloudGroup.appendChild(option);
-                    }
-                    this.modelSelect.appendChild(cloudGroup);
+                    const grp = document.createElement('optgroup');
+                    grp.label = '☁️ Cloud (API Key Required)';
+                    cloudModels.forEach(m => {
+                        const opt = document.createElement('option');
+                        opt.value = m.name;
+                        opt.textContent = m.name;
+                        if (m.name === currentModel?.current_model) opt.selected = true;
+                        grp.appendChild(opt);
+                    });
+                    this.modelSelect.appendChild(grp);
                 }
             } else {
-                const option = document.createElement('option');
-                option.value = '';
-                option.textContent = 'No models available';
-                this.modelSelect.appendChild(option);
+                this.modelSelect.innerHTML = '<option value="">No models available</option>';
             }
         } catch (error) {
             console.error('Error loading models:', error);
-            this.modelSelect.innerHTML = '<option value="">Error loading models - check Ollama</option>';
+            this.modelSelect.innerHTML = '<option value="">Error loading models</option>';
         }
     }
 
