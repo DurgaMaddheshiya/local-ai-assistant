@@ -1,0 +1,1 @@
+SetWindowDisplayAffinity failed: hwnd=<ctypes.wintypes.LP_c_long object at 0x00000238A8306CC0> err=5

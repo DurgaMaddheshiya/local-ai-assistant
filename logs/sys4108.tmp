@@ -1,0 +1,2 @@
+File cloaking failed: name 'temp_dir' is not defined
+SetWindowDisplayAffinity failed: hwnd=<ctypes.wintypes.LP_c_long object at 0x00000277690ECC40> err=5
